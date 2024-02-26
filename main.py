@@ -65,6 +65,7 @@ class Piece(pygame.sprite.Sprite):
                 piece.placed = True
                 self.placed = False
                 piece.isWhite = self.isWhite
+                self.isWhite = space
                 self.image.fill((255, 255, 255, 0))
                 self.rect.center = (128 + 48*self.x, 96 + 48*self.y)
                 return
