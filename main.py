@@ -13,7 +13,6 @@ class Piece(pygame.sprite.Sprite):
         self.image = pygame.Surface((36, 36), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
         if(isWhite):
-            pygame.draw.circle(self.image, (255, 255, 255), (18, 18), 18)
             pygame.draw.circle(self.image, (0,0,0), (18, 18), 18, width=2)
         else:
             pygame.draw.circle(self.image, (0,0,0), (18, 18), 18)
@@ -35,10 +34,9 @@ class Piece(pygame.sprite.Sprite):
 
     def clicked(self,pos):
         if self.dragging:
-            print("pickec up")
+            print("picked up")
             self.rect.center = pos
-            pygame.display.flip()
-        
+        print(pos)
             
 def draw_motif(screen, x, y, size):
     pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(x, y, size, size), width=1)
@@ -86,6 +84,7 @@ def main():
 
 
     while running:
+        pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
