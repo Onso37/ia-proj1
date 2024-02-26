@@ -29,7 +29,7 @@ class Piece(pygame.sprite.Sprite):
 
     def place(self, pos):
         for piece in self.groups()[0]:
-            if piece.rect.collidepoint(pos):
+            if piece.rect.collidepoint(pos) and piece is not self:
                 piece.isWhite = self.isWhite
                 self.kill()
                 return
