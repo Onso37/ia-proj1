@@ -1,13 +1,21 @@
 # import the pygame module, so you can use it
 import pygame
 
+white = True
+black = False
+
+
 class Piece(pygame.sprite.Sprite):
 
-    def __init__(self, color, x, y):
+    def __init__(self, isWhite, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((36, 36), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        pygame.draw.circle(self.image, (0, 0, 0), (18, 18), 18)
+        if(isWhite):
+            pygame.draw.circle(self.image, (0,0,0), (18, 18), 18,2)
+        else:
+            pygame.draw.circle(self.image, (0,0,0), (18, 18), 18)
+        
         self.x = x
         self.y = y
         self.rect.center = (128 + 48*x, 96 + 48*y)
@@ -44,8 +52,20 @@ def main():
             draw_motif(screen, 128 + 96*x, 96*(y+1), 96)
     
     for x in range(9):
-        for y in range(5):
-            piece = Piece(0, x, y)
+        for y in range(2):
+            piece = Piece(black, x, y)
+            pieces.add(piece)
+    for x in range(9):
+        if(x != 4):
+            if(x%2==0):
+                piece = Piece(black, x, 2)
+                pieces.add(piece)
+            else:
+                piece = Piece(white, x, 2)
+                pieces.add(piece)
+    for x in range(9):
+        for y in range(3, 5):
+            piece = Piece(white, x, y)
             pieces.add(piece)
 
     pieces.update((0, 0))
