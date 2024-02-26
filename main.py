@@ -6,7 +6,7 @@ black = False
 
 
 class Piece(pygame.sprite.Sprite):
-
+    
     def __init__(self, isWhite, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.dragging = False
@@ -31,15 +31,35 @@ class Piece(pygame.sprite.Sprite):
 
             self.clicked(pos,pieces,screen)
             
+    def check_position(self,pos):
+        x, y = pos
+        if abs(x - self.rect.left) < 5:
+            self.rect.center = (x-48, self.rect.center[1])
+            self.dragging = False
 
+            print("Mouse is over the left side of the box")
+        elif abs(x - self.rect.right) < 5:
+            self.rect.center = (x+48, self.rect.center[1])
+            self.dragging = False
+            print("Mouse is over the right side of the box")
+        elif abs(y - self.rect.top) < 5:
+            self.rect.center = (self.rect.center[0], self.rect.center[1] - 48)
+            self.dragging = False
+            print("Mouse is over the top side of the box")
+        elif abs(y - self.rect.bottom) < 5:
+            self.rect.center = (self.rect.center[0], self.rect.center[1]+ 48)
+            self.dragging = False
+            print("Mouse is over the bottom side of the box")
+            
     def clicked(self,pos,pieces,screen):
         if self.dragging:
             print("picked up")
-            self.rect.center = pos
+            self.check_position(pos)
             pieces.draw(screen)
             pygame.display.flip()
+   
         
-            
+ 
 def draw_motif(screen, x, y, size):
     pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(x, y, size, size), width=1)
     pygame.draw.line(screen, (0, 0, 0), (x+size/2, y), (x+size/2, y+size))
