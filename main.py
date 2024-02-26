@@ -5,9 +5,9 @@ class Piece(pygame.sprite.Sprite):
 
     def __init__(self, color, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((36, 36))
+        self.image = pygame.Surface((36, 36), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        pygame.draw.circle(self.image, color, (18, 18), 18)
+        pygame.draw.circle(self.image, (0, 0, 0), (18, 18), 18)
         self.x = x
         self.y = y
         self.rect.center = (128 + 48*x, 96 + 48*y)
