@@ -21,7 +21,7 @@ class Piece(pygame.sprite.Sprite):
         self.y = y
         self.rect.center = (128 + 48*x, 96 + 48*y)
 
-    def update(self, pos,event):
+    def update(self, pos,pieces,event,screen):
        if self.rect.collidepoint(pos):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.dragging = True
@@ -29,14 +29,16 @@ class Piece(pygame.sprite.Sprite):
             elif event.type == pygame.MOUSEBUTTONUP:
                 self.dragging = False
 
-            self.clicked(pos)
+            self.clicked(pos,pieces,screen)
             
 
-    def clicked(self,pos):
+    def clicked(self,pos,pieces,screen):
         if self.dragging:
             print("picked up")
             self.rect.center = pos
-        print(pos)
+            pieces.draw(screen)
+            pygame.display.flip()
+        
             
 def draw_motif(screen, x, y, size):
     pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(x, y, size, size), width=1)
@@ -89,6 +91,6 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             if event.type in (pygame.MOUSEBUTTONDOWN,pygame.MOUSEBUTTONUP,pygame.MOUSEMOTION):
-                pieces.update(pygame.mouse.get_pos(),event)
+                pieces.update(pygame.mouse.get_pos(),pieces,event,screen)
 if __name__=="__main__":
     main()
