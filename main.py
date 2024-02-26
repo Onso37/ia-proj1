@@ -9,54 +9,32 @@ class Piece(pygame.sprite.Sprite):
     
     def __init__(self, isWhite, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.dragging = False
         self.image = pygame.Surface((36, 36), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        if(isWhite):
-            pygame.draw.circle(self.image, (0,0,0), (18, 18), 18, width=2)
-        else:
-            pygame.draw.circle(self.image, (0,0,0), (18, 18), 18)
-        
+        self.isWhite = isWhite
+
         self.x = x
         self.y = y
         self.rect.center = (128 + 48*x, 96 + 48*y)
 
-    def update(self, pos,pieces,event,screen):
-       if self.rect.collidepoint(pos):
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                self.dragging = True
-                
-            elif event.type == pygame.MOUSEBUTTONUP:
-                self.dragging = False
+    def update(self):
+        if self.isWhite:
+            pygame.draw.circle(self.image, (255, 255, 255), (18, 18), 18)
+            pygame.draw.circle(self.image, (0,0,0), (18, 18), 18, width=2)
+        else:
+            pygame.draw.circle(self.image, (0,0,0), (18, 18), 18)
 
-            self.clicked(pos,pieces,screen)
-            
-    def check_position(self,pos):
-        x, y = pos
-        if abs(x - self.rect.left) < 5:
-            self.rect.center = (x-48, self.rect.center[1])
-            self.dragging = False
+    def drag(self, pos):
+        self.rect.center = pos
 
-            print("Mouse is over the left side of the box")
-        elif abs(x - self.rect.right) < 5:
-            self.rect.center = (x+48, self.rect.center[1])
-            self.dragging = False
-            print("Mouse is over the right side of the box")
-        elif abs(y - self.rect.top) < 5:
-            self.rect.center = (self.rect.center[0], self.rect.center[1] - 48)
-            self.dragging = False
-            print("Mouse is over the top side of the box")
-        elif abs(y - self.rect.bottom) < 5:
-            self.rect.center = (self.rect.center[0], self.rect.center[1]+ 48)
-            self.dragging = False
-            print("Mouse is over the bottom side of the box")
-            
-    def clicked(self,pos,pieces,screen):
-        if self.dragging:
-            print("picked up")
-            self.check_position(pos)
-            pieces.draw(screen)
-            pygame.display.flip()
+    def place(self, pos):
+        for piece in self.groups()[0]:
+            if piece.rect.collidepoint(pos):
+                piece.isWhite = self.isWhite
+                self.kill()
+                return
+        
+        self.rect.center = (128 + 48*self.x, 96 + 48*self.y)
    
         
  
@@ -66,6 +44,12 @@ def draw_motif(screen, x, y, size):
     pygame.draw.line(screen, (0, 0, 0), (x, y+size/2), (x+size, y+size/2))
     pygame.draw.line(screen, (0, 0, 0), (x, y), (x+size, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size), (x+size, y))
+
+def draw_bg(screen):
+    screen.fill((255, 255, 255))
+    for x in range(4):
+        for y in range(2):
+            draw_motif(screen, 128 + 96*x, 96*(y+1), 96)
 
 # define a main function
 def main():
@@ -78,11 +62,7 @@ def main():
     pieces = pygame.sprite.Group()
      
     running = True
-     
-    screen.fill((255, 255, 255))
-    for x in range(4):
-        for y in range(2):
-            draw_motif(screen, 128 + 96*x, 96*(y+1), 96)
+    dragging = None
     
     for x in range(9):
         for y in range(2):
@@ -102,15 +82,26 @@ def main():
             pieces.add(piece)
 
     
-    pieces.draw(screen)
 
 
     while running:
+        draw_bg(screen)
+        pieces.update()
+        pieces.draw(screen)
         pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type in (pygame.MOUSEBUTTONDOWN,pygame.MOUSEBUTTONUP,pygame.MOUSEMOTION):
-                pieces.update(pygame.mouse.get_pos(),pieces,event,screen)
+            if event.type == pygame.MOUSEBUTTONDOWN and not dragging:
+                for piece in pieces:
+                    if piece.rect.collidepoint(pygame.mouse.get_pos()):
+                        dragging = piece
+                        piece.dragging = True
+            if event.type == pygame.MOUSEBUTTONUP and dragging:
+                dragging.place(pygame.mouse.get_pos())
+                dragging = None
+            if event.type == pygame.MOUSEMOTION and dragging:
+                dragging.drag(pygame.mouse.get_pos())
+
 if __name__=="__main__":
     main()
