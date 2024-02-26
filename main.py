@@ -12,7 +12,8 @@ class Piece(pygame.sprite.Sprite):
         self.image = pygame.Surface((36, 36), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
         if(isWhite):
-            pygame.draw.circle(self.image, (0,0,0), (18, 18), 18,2)
+            pygame.draw.circle(self.image, (255, 255, 255), (18, 18), 18)
+            pygame.draw.circle(self.image, (0,0,0), (18, 18), 18, width=2)
         else:
             pygame.draw.circle(self.image, (0,0,0), (18, 18), 18)
         
