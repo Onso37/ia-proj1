@@ -3,6 +3,7 @@ import pygame
 
 white = True
 black = False
+space = 2
 player_turn = white  #white starts
 displayed = False
 
@@ -12,13 +13,13 @@ def turn_change():
 def manage_gamestate(self_piece,enemy_piece):
     global displayed
     if(player_turn == white and self_piece.isWhite):
-        if(enemy_piece.isWhite):
+        if(enemy_piece.isWhite and not enemy_piece.isWhite == space):
             print("Invalid move")
             return -1
         turn_change()
         displayed = False
     elif (player_turn==black and not self_piece.isWhite):
-        if(not enemy_piece.isWhite):
+        if(not enemy_piece.isWhite and not enemy_piece.isWhite == space):
             print("Invalid move")
             return -1
         turn_change()
@@ -110,12 +111,13 @@ def main():
             else:
                 piece = Piece(white, x, 2)
                 pieces.add(piece)
+       
     for x in range(9):
         for y in range(3, 5):
             piece = Piece(white, x, y)
             pieces.add(piece)
 
-    center_piece = Piece(white, 4, 2, False)
+    center_piece = Piece(space, 4, 2, False)
     pieces.add(center_piece)
 
     while running:
