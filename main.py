@@ -3,7 +3,31 @@ import pygame
 
 white = True
 black = False
+player_turn = white  #white starts
+displayed = False
 
+def turn_change():
+    global player_turn
+    player_turn = not player_turn
+def manage_gamestate(self_piece,enemy_piece):
+    global displayed
+    if(player_turn == white and self_piece.isWhite):
+        if(enemy_piece.isWhite):
+            print("Invalid move")
+            return -1
+        turn_change()
+        displayed = False
+    elif (player_turn==black and not self_piece.isWhite):
+        if(not enemy_piece.isWhite):
+            print("Invalid move")
+            return -1
+        turn_change()
+        displayed = False
+    else:
+        print("Not your turn")
+        return -1
+    return 0
+    
 
 class Piece(pygame.sprite.Sprite):
     
@@ -30,8 +54,13 @@ class Piece(pygame.sprite.Sprite):
         self.rect.center = pos
 
     def place(self, pos):
+        ## here to check for game logic maybe?
+        
         for piece in self.groups()[0]:
+            
             if piece.rect.collidepoint(pos) and piece is not self :
+                if(manage_gamestate(self,piece)==-1):
+                    break
                 piece.placed = True
                 self.placed = False
                 piece.isWhite = self.isWhite
@@ -94,6 +123,15 @@ def main():
         pieces.update()
         pieces.draw(screen)
         pygame.display.flip()
+        global displayed
+
+        if(player_turn == white and not displayed):
+            print("White's turn")
+            displayed = True
+        elif(player_turn == black and not displayed):
+            print("Black's turn")
+            displayed = True
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
