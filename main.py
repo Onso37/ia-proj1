@@ -31,10 +31,11 @@ class Piece(pygame.sprite.Sprite):
 
     def place(self, pos):
         for piece in self.groups()[0]:
-            if piece.rect.collidepoint(pos) and piece is not self:
+            if piece.rect.collidepoint(pos) and piece is not self and (piece.isWhite != self.isWhite):
                 piece.placed = True
                 self.placed = False
                 piece.isWhite = self.isWhite
+                self.isWhite = not piece.isWhite
                 self.image.fill((255, 255, 255, 0))
                 self.rect.center = (128 + 48*self.x, 96 + 48*self.y)
                 return
