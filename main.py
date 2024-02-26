@@ -2,11 +2,12 @@
 import pygame
 
 class Piece(pygame.sprite.Sprite):
-    def __init__(self, status, x, y):
+
+    def __init__(self, color, x, y):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((36, 36))
-        self.image.fill((0, 0, 0))
         self.rect = self.image.get_rect()
+        pygame.draw.circle(self.image, color, (18, 18), 18)
         self.x = x
         self.y = y
         self.rect.center = (128 + 48*x, 96 + 48*y)
@@ -31,7 +32,7 @@ def main():
     pygame.init()
     pygame.display.set_caption("Fanorona")
      
-    # create a surface on screen that has the size of 240 x 180
+    # create a surface on screen that has the size of 640 x 480
     screen = pygame.display.set_mode((640,480))
     pieces = pygame.sprite.Group()
      
