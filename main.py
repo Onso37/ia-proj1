@@ -10,6 +10,7 @@ displayed = False
 def turn_change():
     global player_turn
     player_turn = not player_turn
+    
 def manage_gamestate(self_piece,enemy_piece):
     global displayed
     if(player_turn == white and self_piece.isWhite):
