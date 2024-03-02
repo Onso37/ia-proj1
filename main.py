@@ -3,6 +3,11 @@ import pygame
 import numpy
 from copy import deepcopy
 
+
+capture_by_approach=0
+capture_by_withdrawal=1
+no_capture=-1
+
 white = 1
 black = 0
 space = 2
@@ -15,7 +20,6 @@ up_left = (-1,-1)
 up_right =(-1,1)
 down_left = (1,-1)
 down_right = (1,1)
-
 displayed = False
 
 def turn_change():
@@ -40,7 +44,6 @@ def manage_gamestate(self_piece,enemy_piece):
         print("Not your turn")
         return -1
     return 0
-
 def is_even(x):
     return x%2==0
 def is_diagonal(x1,y1,x2,y2):
@@ -54,6 +57,7 @@ class State:
     def __init__(self):
         self.board = numpy.zeros((5,9))
         self.player = 1
+        self.capture = no_capture
         self.white_pieces = 22
         self.black_pieces = 22
         self.white_captured = 0
@@ -78,7 +82,8 @@ class State:
     def possible_move(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
-        if(self.player != self.board[xi][yi]): return False;
+        if(self.player != self.board[xi][yi] ): 
+            return False;
         if(is_diagonal(xi,yi,x,y)):
             if((is_even(xi) and is_even(yi)) or (not is_even(xi) and not is_even(yi))):
                 if(self.board[x][y] == space):
@@ -125,27 +130,65 @@ class State:
             temp_down_right = vector_sum(temp_down_right,down_right)
        
         return temp_avalable_moves
-             
+    
+    def capture_move(self,player_pos,move):
+        xi,yi=player_pos
+        x,y = move
+        vector = (0,0)
+        if((x-xi)==0 and (y-yi)!= 0):
+          vector = (0,(y-yi)//abs(y-yi))
+        elif((x-xi)!=0 and (y-yi)==0):
+          vector = ((x-xi)//abs(x-xi),0)
+        elif((x-xi)==0 and (y-yi)==0):
+          vector = (0,0)
+        else:
+          vector = ((x-xi)//abs(x-xi),(y-yi)//abs(y-yi))
         
+        if(self.capture == capture_by_approach):
+            temp = vector_sum(move,vector)
+            while(temp[0]>=0 and temp[0]<5 and temp[1]>=0 and temp[1]<9):
+                if(self.board[temp[0]][temp[1]] != self.player and self.board[temp[0]][temp[1]] != space):
+                    if(self.player==white):
+                        self.black_captured += 1
+                        self.black_pieces -= 1
+                    else:
+                        self.white_captured += 1
+                        self.white_pieces -= 1  
+                    self.board[temp[0]][temp[1]] = space
+                    temp = vector_sum(temp,vector)
+                else:
+                    break
+        elif(self.capture == capture_by_withdrawal):
+            vector = (-vector[0],-vector[1])
+            temp = vector_sum(player_pos,vector)
+            while(temp[0]>=0 and temp[0]<5 and temp[1]>=0 and temp[1]<9):
+                if(self.board[temp[0]][temp[1]] != self.player and self.board[temp[0]][temp[1]] != space):
+                    if(self.player==white):
+                        self.black_captured += 1
+                        self.black_pieces -= 1
+                    else:
+                        self.white_captured += 1
+                        self.white_pieces -= 1  
+                    self.board[temp[0]][temp[1]] = space
+                    temp = vector_sum(temp,vector)
+                else:
+                    break
+        return self.board
+      
     def move(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
         state_copy = deepcopy(self)
-        available_moves = self.possible_moves(player_pos)
-        if(move in available_moves):
+        if(move in self.available_moves):
+            state_copy.capture_move(player_pos,move)
             state_copy.board[x][y] = state_copy.board[xi][yi]
             state_copy.board[xi][yi] = space
-            state_copy.player = not state_copy.player
-            state_copy.available_moves = list()
-            state_copy.white_captured = 0
-            state_copy.black_captured = 0
-            state_copy.white_pieces = self.white_pieces
-            state_copy.black_pieces = self.black_pieces
+            state_copy.available_moves = state_copy.possible_moves(move)
+            state_copy.player = not state_copy.player            
             return state_copy
         else:
             print("Invalid move")
             return -1
-
 
         
 class Piece(pygame.sprite.Sprite):
