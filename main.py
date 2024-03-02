@@ -7,6 +7,15 @@ white = 1
 black = 0
 space = 2
 player_turn = white  #white starts
+left = (0,-1)
+right = (0, 1)
+up = (-1,0)
+down = (1,0)
+up_left = (-1,-1)
+up_right =(-1,1)
+down_left = (1,-1)
+down_right = (1,1)
+
 displayed = False
 
 def turn_change():
@@ -35,6 +44,19 @@ def is_even(x):
     return x%2==0
 def is_diagonal(x1,y1,x2,y2):
     return abs(x1-x2) == abs(y1-y2)
+def vector_sum(v1,v2):
+    return (v1[0]+v2[0],v1[1]+v2[1])
+def vector_sub(v1,v2):
+    return (v1[0]-v2[0],v1[1]-v2[1])
+
+def is_even(x):
+    return x%2==0
+def is_diagonal(x1,y1,x2,y2):
+    return abs(x1-x2) == abs(y1-y2)
+def vector_sum(v1,v2):
+    return (v1[0]+v2[0],v1[1]+v2[1])
+def vector_sub(v1,v2):
+    return (v1[0]-v2[0],v1[1]-v2[1])
 
 class State:
     def __init__(self):
@@ -44,7 +66,7 @@ class State:
         self.black_pieces = 22
         self.white_captured = 0
         self.black_captured = 0
-        self.available_moves = list();
+        self.available_moves = [(2,4)]
         self.winner = -1 #-1 for no winner, 0 for black, 1 for white
         for y in range(9):
             for x in range(2):
@@ -74,6 +96,44 @@ class State:
                 return True
 
         return False
+    
+    def possible_moves(self,player_pos):
+        temp_left = left
+        temp_right = right
+        temp_up = up
+        temp_down = down
+        temp_up_left = up_left
+        temp_up_right = up_right
+        temp_down_left = down_left
+        temp_down_right = down_right
+        temp_avalable_moves = list()
+        while(self.possible_move(player_pos,vector_sum(player_pos,temp_up))):
+            temp_avalable_moves.append(vector_sum(player_pos,temp_up))
+            temp_up = vector_sum(temp_up,up)
+        while(self.possible_move(player_pos,vector_sum(player_pos,temp_down))):
+            temp_avalable_moves.append(vector_sum(player_pos,temp_down))
+            temp_down = vector_sum(temp_down,down)
+        while(self.possible_move(player_pos,vector_sum(player_pos,temp_left))):
+            temp_avalable_moves.append(vector_sum(player_pos,temp_left))
+            temp_left = vector_sum(temp_left,left)
+        while(self.possible_move(player_pos,vector_sum(player_pos,temp_right))):
+            temp_avalable_moves.append(vector_sum(player_pos,temp_right))
+            temp_right = vector_sum(temp_right,right)
+        while(self.possible_move(player_pos,vector_sum(player_pos,temp_up_left))):
+            temp_avalable_moves.append(vector_sum(player_pos,temp_up_left))
+            temp_up_left = vector_sum(temp_up_left,up_left)
+        while(self.possible_move(player_pos,vector_sum(player_pos,temp_up_right))):
+            temp_avalable_moves.append(vector_sum(player_pos,temp_up_right))
+            temp_up_right = vector_sum(temp_up_right,up_right)
+        while(self.possible_move(player_pos,vector_sum(player_pos,temp_down_left))):
+            temp_avalable_moves.append(vector_sum(player_pos,temp_down_left))
+            temp_down_left = vector_sum(temp_down_left,down_left)
+        while(self.possible_move(player_pos,vector_sum(player_pos,temp_down_right))):
+            temp_avalable_moves.append(vector_sum(player_pos,temp_down_right))
+            temp_down_right = vector_sum(temp_down_right,down_right)
+       
+        return temp_avalable_moves
+    
     def evaluate_move(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
@@ -83,7 +143,8 @@ class State:
         xi,yi=player_pos
         x,y = move
         state_copy = deepcopy(self)
-        if(self.possible_move(player_pos,move)):
+        available_moves = self.possible_moves(player_pos)
+        if(move in available_moves):
             state_copy.board[x][y] = state_copy.board[xi][yi]
             state_copy.board[xi][yi] = space
             state_copy.player = not state_copy.player
