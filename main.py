@@ -1,8 +1,10 @@
 # import the pygame module, so you can use it
 import pygame
+import numpy
+from copy import deepcopy
 
-white = True
-black = False
+white = 1
+black = 0
 space = 2
 player_turn = white  #white starts
 displayed = False
@@ -29,8 +31,74 @@ def manage_gamestate(self_piece,enemy_piece):
         print("Not your turn")
         return -1
     return 0
-    
+def is_even(x):
+    return x%2==0
+def is_diagonal(x1,y1,x2,y2):
+    return abs(x1-x2) == abs(y1-y2)
 
+class State:
+    def __init__(self):
+        self.board = numpy.zeros((5,9))
+        self.player = 1
+        self.white_pieces = 22
+        self.black_pieces = 22
+        self.white_captured = 0
+        self.black_captured = 0
+        self.available_moves = list();
+        self.winner = -1 #-1 for no winner, 0 for black, 1 for white
+        for y in range(9):
+            for x in range(2):
+                self.board[x][y] = black
+        for y in range(9):
+            if(y != 4):
+                if(y%2==0):
+                    self.board[2][y] = black
+                else:
+                    self.board[2][y] = white
+        
+        for y in range(9):
+            for x in range(3, 5):
+                self.board[x][y] = white
+        self.board[2][4] = space
+
+    def possible_move(self,player_pos,move):
+        xi,yi=player_pos
+        x,y = move
+        if(self.player != self.board[xi][yi]): return False;
+        if(is_diagonal(xi,yi,x,y)):
+            if((is_even(xi) and is_even(yi)) or (not is_even(xi) and not is_even(yi))):
+                if(self.board[x][y] == space):
+                    return True
+        else:
+            if(self.board[x][y] == space):
+                return True
+
+        return False
+    def evaluate_move(self,player_pos,move):
+        xi,yi=player_pos
+        x,y = move
+        vector_x,vector_y = (x-xi,y-yi)
+        
+    def move(self,player_pos,move):
+        xi,yi=player_pos
+        x,y = move
+        state_copy = deepcopy(self)
+        if(self.possible_move(player_pos,move)):
+            state_copy.board[x][y] = state_copy.board[xi][yi]
+            state_copy.board[xi][yi] = space
+            state_copy.player = not state_copy.player
+            state_copy.available_moves = list()
+            state_copy.white_captured = 0
+            state_copy.black_captured = 0
+            state_copy.white_pieces = self.white_pieces
+            state_copy.black_pieces = self.black_pieces
+            return state_copy
+        else:
+            print("Invalid move")
+            return -1
+
+
+        
 class Piece(pygame.sprite.Sprite):
     
     def __init__(self, isWhite, x, y, placed=True):
@@ -55,14 +123,9 @@ class Piece(pygame.sprite.Sprite):
     def drag(self, pos):
         self.rect.center = pos
 
-    def place(self, pos):
-        ## here to check for game logic maybe?
-        
+    def place(self, pos):        
         for piece in self.groups()[0]:
-            
             if piece.rect.collidepoint(pos) and piece is not self :
-                if(manage_gamestate(self,piece)==-1):
-                    break
                 piece.placed = True
                 self.placed = False
                 piece.isWhite = self.isWhite
