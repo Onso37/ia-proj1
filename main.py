@@ -40,14 +40,6 @@ def manage_gamestate(self_piece,enemy_piece):
         print("Not your turn")
         return -1
     return 0
-def is_even(x):
-    return x%2==0
-def is_diagonal(x1,y1,x2,y2):
-    return abs(x1-x2) == abs(y1-y2)
-def vector_sum(v1,v2):
-    return (v1[0]+v2[0],v1[1]+v2[1])
-def vector_sub(v1,v2):
-    return (v1[0]-v2[0],v1[1]-v2[1])
 
 def is_even(x):
     return x%2==0
@@ -133,11 +125,7 @@ class State:
             temp_down_right = vector_sum(temp_down_right,down_right)
        
         return temp_avalable_moves
-    
-    def evaluate_move(self,player_pos,move):
-        xi,yi=player_pos
-        x,y = move
-        vector_x,vector_y = (x-xi,y-yi)
+             
         
     def move(self,player_pos,move):
         xi,yi=player_pos
