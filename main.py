@@ -1,6 +1,7 @@
 # import the pygame module, so you can use it
 import pygame
 import numpy
+import time
 from copy import deepcopy
 
 
@@ -69,7 +70,7 @@ class State:
         self.white_captured = 0
         self.black_captured = 0
         self.available_moves = [(2,4)]
-        self.winner = -1 #-1 for no winner, 0 for black, 1 for white
+        self.winner = 2 #2 for no winner, 0 for black, 1 for white
         for y in range(9):
             for x in range(2):
                 self.board[x][y] = black
@@ -203,10 +204,14 @@ class State:
         state_copy = deepcopy(self)
         if(move in self.available_moves):
             state_copy.capture_move(player_pos,move)
-            state_copy.board[x][y] = state_copy.board[xi][yi]
+            state_copy.board[x][y] = self.board[xi][yi]
             state_copy.board[xi][yi] = space
             state_copy.available_moves = state_copy.possible_moves(move)
-            state_copy.player = not state_copy.player            
+            if(state_copy.available_moves == []):
+                print("Invalid move")
+                return -1
+            state_copy.check_win()     
+            state_copy.player = not self.player
             return state_copy
         else:
             print("Invalid move")
@@ -262,6 +267,15 @@ class State:
 
         return states
 
+    def check_win(self):
+        if self.white_pieces == 0:
+            self.winner = black
+        elif self.black_pieces == 0:
+            self.winner = white
+        else:
+            self.winner = 2
+        return self.winner
+
         
 class Piece(pygame.sprite.Sprite):
     
@@ -287,7 +301,7 @@ class Piece(pygame.sprite.Sprite):
     def drag(self, pos):
         self.rect.center = pos
 
-    def place(self, pos):        
+    def place(self, pos,state,revert=False):        
         for piece in self.groups()[0]:
             if piece.rect.collidepoint(pos) and piece is not self :
                 piece.placed = True
@@ -296,10 +310,14 @@ class Piece(pygame.sprite.Sprite):
                 self.isWhite = space
                 self.image.fill((255, 255, 255, 0))
                 self.rect.center = (128 + 48*self.x, 96 + 48*self.y)
-                return
+                if(not revert):
+                    temp = state.move((self.y, self.x), (piece.y, piece.x))
+                    return temp
         
         self.rect.center = (128 + 48*self.x, 96 + 48*self.y)
-   
+        if(not revert):
+            return state.move((self.y, self.x), (self.y, self.x))
+
         
  
 def draw_motif(screen, x, y, size):
@@ -315,6 +333,21 @@ def draw_bg(screen):
         for y in range(2):
             draw_motif(screen, 128 + 96*x, 96*(y+1), 96)
 
+def update_sprite(state,screen):
+    pieces = pygame.sprite.Group()
+
+    for x in range(9):
+        for y in range(5):
+            if (state.board[y][x] == white):
+                piece = Piece(white, x, y)
+                pieces.add(piece)
+            elif (state.board[y][x] == black): 
+                piece = Piece(black, x, y)
+                pieces.add(piece)
+            else:
+                piece = Piece(space, x, y, False)
+                pieces.add(piece)
+    return pieces
 # define a main function
 def main():
      
@@ -326,59 +359,38 @@ def main():
      
     # create a surface on screen that has the size of 640 x 480
     screen = pygame.display.set_mode((640,480))
-    pieces = pygame.sprite.Group()
-     
+    game = State()
+
     running = True
     dragging = None
-    
-    for x in range(9):
-        for y in range(2):
-            piece = Piece(black, x, y)
-            pieces.add(piece)
-    for x in range(9):
-        if(x != 4):
-            if(x%2==0):
-                piece = Piece(black, x, 2)
-                pieces.add(piece)
-            else:
-                piece = Piece(white, x, 2)
-                pieces.add(piece)
-       
-    for x in range(9):
-        for y in range(3, 5):
-            piece = Piece(white, x, y)
-            pieces.add(piece)
-
-    center_piece = Piece(space, 4, 2, False)
-    pieces.add(center_piece)
-
-    while running:
+    pieces=update_sprite(game,screen)
+    mode=input("Enter 1 for Human vs Human, 2 for Human vs AI, 3 for AI vs AI")
+    while running and game.winner == 2:
         draw_bg(screen)
+        pieces = update_sprite(state,screen)
         pieces.update()
         pieces.draw(screen)
         pygame.display.flip()
         global displayed
-
-        if(player_turn == white and not displayed):
-            print("White's turn")
-            displayed = True
-        elif(player_turn == black and not displayed):
-            print("Black's turn")
-            displayed = True
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.MOUSEBUTTONDOWN and not dragging:
-                for piece in pieces:
-                    if piece.rect.collidepoint(pygame.mouse.get_pos()):
-                        dragging = piece
-                        piece.dragging = True
-            if event.type == pygame.MOUSEBUTTONUP and dragging:
-                dragging.place(pygame.mouse.get_pos())
-                dragging = None
-            if event.type == pygame.MOUSEMOTION and dragging:
-                dragging.drag(pygame.mouse.get_pos())
+        if(mode=="3"):
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                if event.type == pygame.MOUSEBUTTONDOWN and not dragging:
+                    for piece in pieces:
+                        if piece.rect.collidepoint(pygame.mouse.get_pos()):
+                            dragging = piece
+                            piece.dragging = True
+                if event.type == pygame.MOUSEBUTTONUP and dragging:
+                    temp = state
+                    next_state= dragging.place(pygame.mouse.get_pos(),state)
+                    if(next_state != -1):
+                        state = next_state
+                    else:
+                        state = temp
+                    dragging = None
+                if event.type == pygame.MOUSEMOTION and dragging:
+                    dragging.drag(pygame.mouse.get_pos())
 
 if __name__=="__main__":
     main()
