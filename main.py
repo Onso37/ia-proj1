@@ -20,7 +20,11 @@ up_left = (-1,-1)
 up_right =(-1,1)
 down_left = (1,-1)
 down_right = (1,1)
+directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 displayed = False
+
+ROWS = 5
+COLS = 9
 
 def turn_change():
     global player_turn
@@ -58,6 +62,8 @@ class State:
         self.board = numpy.zeros((5,9))
         self.player = 1
         self.capture = no_capture
+        self.last_dir = None
+        self.capture_positions = []
         self.white_pieces = 22
         self.black_pieces = 22
         self.white_captured = 0
@@ -82,8 +88,10 @@ class State:
     def possible_move(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
+        if (x < 0 or x >= ROWS or y < 0 or y >= COLS):
+            return False
         if(self.player != self.board[xi][yi] ): 
-            return False;
+            return False
         if(is_diagonal(xi,yi,x,y)):
             if((is_even(xi) and is_even(yi)) or (not is_even(xi) and not is_even(yi))):
                 if(self.board[x][y] == space):
@@ -131,6 +139,14 @@ class State:
        
         return temp_avalable_moves
     
+    def possible_moves_2(self, x, y):
+        moves = []
+        for dir in directions:
+            if self.possible_move((x,y), vector_sum((x, y), dir)):
+                moves.append(dir)
+        return moves
+
+
     def capture_move(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
@@ -189,6 +205,52 @@ class State:
         else:
             print("Invalid move")
             return -1
+        
+    def try_moves(self, x, y, in_sequence=False):
+        states = []
+        if not in_sequence:
+            self.last_dir = None
+            self.capture_positions = [(x, y)]
+        else:
+            states.append(self)
+        
+        for dir in self.possible_moves_2(x, y):
+            moved_pos = vector_sum((x, y), dir)
+            if self.board[moved_pos[0], moved_pos[1]] != space:
+                continue
+
+            if in_sequence and (dir == self.last_dir or moved_pos in self.capture_positions):
+                continue
+
+            self.last_dir = dir
+            self.capture_positions.append(moved_pos)
+
+            front_x, front_y = vector_sum(moved_pos, dir)
+            back_x, back_y = vector_sub((x, y), dir)
+
+            if self.board[front_x][front_y] == (not self.player):
+                state_copy = deepcopy(self)
+                state_copy.capture = capture_by_approach
+
+                state_copy.capture_move((x, y), moved_pos)
+                states.extend(state_copy.try_moves(moved_pos[0], moved_pos[1], True))
+            if self.board[back_x][back_y] == (not self.player):
+                state_copy = deepcopy(self)
+                state_copy.capture = capture_by_withdrawal
+
+                state_copy.capture_move((x, y), moved_pos)
+                states.extend(state_copy.try_moves(moved_pos[0], moved_pos[1], True))
+
+        return states
+
+    def get_available_moves(self):
+        states = []
+        for x in range(ROWS):
+            for y in range(COLS):
+                if self.board[x][y] == self.player:
+                    states.extend(self.try_moves(x, y))
+
+        return states
 
         
 class Piece(pygame.sprite.Sprite):
@@ -246,6 +308,9 @@ def draw_bg(screen):
 # define a main function
 def main():
      
+    state = State()
+    test = state.get_available_moves()
+
     pygame.init()
     pygame.display.set_caption("Fanorona")
      
