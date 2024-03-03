@@ -199,10 +199,13 @@ class State:
         approach = vector_sum(move,vector)
         withdrawal_out_of_bounds=False
         approach_out_of_bounds=False
+        
         if (withdrawal[0] < 0 or withdrawal[0] >= ROWS or withdrawal[1] < 0 or withdrawal[1] >= COLS):
             withdrawal_out_of_bounds = True
         if (approach[0] < 0 or approach[0] >= ROWS or approach[1] < 0 or approach[1] >= COLS):
             approach_out_of_bounds = True
+        print("Withdrawal",withdrawal_out_of_bounds)
+        print("Approach",approach_out_of_bounds)
         if( (not withdrawal_out_of_bounds) and self.board[withdrawal[0]][withdrawal[1]] == (not self.player) and self.board[approach[0]][approach[1]] != space ):
             captures[capture_by_withdrawal] = True
         if((not approach_out_of_bounds) and self.board[approach[0]][approach[1]] == (not self.player) and self.board[withdrawal[0]][withdrawal[1]] != space ):
@@ -293,6 +296,8 @@ class State:
                 state_copy.player = self.player
             else:
                 state_copy.player = not self.player
+                state_copy.board[xi][yi] = self.board[xi][yi]
+                state_copy.board[x][y] = space
             if(state_copy.available_moves == []):
                 state_copy.player = not self.player
                 return state_copy
