@@ -372,7 +372,7 @@ def main():
         pieces.draw(screen)
         pygame.display.flip()
         global displayed
-        if(mode=="3"):
+        if(mode=="1"):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
