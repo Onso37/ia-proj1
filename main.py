@@ -57,6 +57,16 @@ def vector_sum(v1,v2):
     return (v1[0]+v2[0],v1[1]+v2[1])
 def vector_sub(v1,v2):
     return (v1[0]-v2[0],v1[1]-v2[1])
+def is_same_orientation(vector1, vector2):
+    if(vector1[0]==0 and vector1[1]!=0):
+        declive1 = None
+    else:
+        declive1 = vector1[1] / vector1[0]
+    if(vector2[0]==0 and vector2[1]!=0):
+        declive2 = None
+    else:
+        declive2 = vector2[1] / vector2[0]
+    return declive1 == declive2
 
 class State:
     def __init__(self):
@@ -89,7 +99,13 @@ class State:
             for x in range(3, 5):
                 self.board[x][y] = white
         self.board[2][4] = space
-
+    def has_diagonal(self,player_pos,move):
+        xi,yi=player_pos
+        x,y = move
+        if(is_diagonal(xi,yi,x,y)):
+            if((is_even(xi) and is_even(yi)) or (not is_even(xi) and not is_even(yi))):
+                return True
+        return False
     def possible_move(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
@@ -107,7 +123,7 @@ class State:
 
         return False
     
-    def possible_moves(self,player_pos):
+    def possible_moves(self,player_pos,move):
         temp_left = left
         temp_right = right
         temp_up = up
@@ -117,31 +133,44 @@ class State:
         temp_down_left = down_left
         temp_down_right = down_right
         temp_avalable_moves = list()
-        while(self.possible_move(player_pos,vector_sum(player_pos,temp_up))):
-            temp_avalable_moves.append(vector_sum(player_pos,temp_up))
+        print("Player pos",player_pos)
+        print("Move",move)
+        eval_vec=(move[0]-player_pos[0],move[1]-player_pos[1])
+        print(eval_vec)
+        print(is_same_orientation(eval_vec,temp_up))
+        print(is_same_orientation(eval_vec,temp_down))
+        print(is_same_orientation(eval_vec,temp_left))
+        print(is_same_orientation(eval_vec,temp_right))
+        print(is_same_orientation(eval_vec,temp_up_left))
+        print(is_same_orientation(eval_vec,temp_up_right))
+        print(is_same_orientation(eval_vec,temp_down_left))
+        print(is_same_orientation(eval_vec,temp_down_right))
+        while(self.possible_move(move,vector_sum(move,temp_up)) and (not is_same_orientation(eval_vec,temp_up))):
+            temp_avalable_moves.append(vector_sum(move,temp_up))
             temp_up = vector_sum(temp_up,up)
-        while(self.possible_move(player_pos,vector_sum(player_pos,temp_down))):
-            temp_avalable_moves.append(vector_sum(player_pos,temp_down))
+        while(self.possible_move(move,vector_sum(move,temp_down)) and (not is_same_orientation(eval_vec,temp_down))):
+            temp_avalable_moves.append(vector_sum(move,temp_down))
             temp_down = vector_sum(temp_down,down)
-        while(self.possible_move(player_pos,vector_sum(player_pos,temp_left))):
-            temp_avalable_moves.append(vector_sum(player_pos,temp_left))
+        while(self.possible_move(move,vector_sum(move,temp_left)) and (not is_same_orientation(eval_vec,temp_left))):
+            temp_avalable_moves.append(vector_sum(move,temp_left))
             temp_left = vector_sum(temp_left,left)
-        while(self.possible_move(player_pos,vector_sum(player_pos,temp_right))):
-            temp_avalable_moves.append(vector_sum(player_pos,temp_right))
+        while(self.possible_move(move,vector_sum(move,temp_right))and (not is_same_orientation(eval_vec,temp_right))):
+            temp_avalable_moves.append(vector_sum(move,temp_right))
             temp_right = vector_sum(temp_right,right)
-        while(self.possible_move(player_pos,vector_sum(player_pos,temp_up_left))):
-            temp_avalable_moves.append(vector_sum(player_pos,temp_up_left))
+        while(self.possible_move(move,vector_sum(move,temp_up_left))and (not is_same_orientation(eval_vec,temp_up_left))):
+            temp_avalable_moves.append(vector_sum(move,temp_up_left))
             temp_up_left = vector_sum(temp_up_left,up_left)
-        while(self.possible_move(player_pos,vector_sum(player_pos,temp_up_right))):
-            temp_avalable_moves.append(vector_sum(player_pos,temp_up_right))
+        while(self.possible_move(move,vector_sum(move,temp_up_right))and (not is_same_orientation(eval_vec,temp_up_right))):
+            temp_avalable_moves.append(vector_sum(move,temp_up_right))
             temp_up_right = vector_sum(temp_up_right,up_right)
-        while(self.possible_move(player_pos,vector_sum(player_pos,temp_down_left))):
-            temp_avalable_moves.append(vector_sum(player_pos,temp_down_left))
+        while(self.possible_move(move,vector_sum(move,temp_down_left))and (not is_same_orientation(eval_vec,temp_down_left))):
+            temp_avalable_moves.append(vector_sum(move,temp_down_left))
             temp_down_left = vector_sum(temp_down_left,down_left)
-        while(self.possible_move(player_pos,vector_sum(player_pos,temp_down_right))):
-            temp_avalable_moves.append(vector_sum(player_pos,temp_down_right))
+        while(self.possible_move(move,vector_sum(move,temp_down_right))and (not is_same_orientation(eval_vec,temp_down_right))):
+            temp_avalable_moves.append(vector_sum(move,temp_down_right))
             temp_down_right = vector_sum(temp_down_right,down_right)
-       
+        if(move in temp_avalable_moves):
+            temp_avalable_moves.remove(move)
         return temp_avalable_moves
     
     def possible_moves_2(self, x, y):
@@ -151,7 +180,35 @@ class State:
                 moves.append(dir)
         return moves
 
+    
+    def evaluate_capture(self,player_pos,move):
+        xi,yi=player_pos
+        x,y = move
+        captures=numpy.zeros(2)
+        vector = (0,0)
+        if((x-xi)==0 and (y-yi)!= 0):
+          vector = (0,(y-yi)//abs(y-yi))
+        elif((x-xi)!=0 and (y-yi)==0):
+          vector = ((x-xi)//abs(x-xi),0)
+        elif((x-xi)==0 and (y-yi)==0):
+          vector = (0,0)
+        else:
+          vector = ((x-xi)//abs(x-xi),(y-yi)//abs(y-yi))
 
+        withdrawal = vector_sum(player_pos,(-vector[0],-vector[1]))
+        approach = vector_sum(move,vector)
+        withdrawal_out_of_bounds=False
+        approach_out_of_bounds=False
+        if (withdrawal[0] < 0 or withdrawal[0] >= ROWS or withdrawal[1] < 0 or withdrawal[1] >= COLS):
+            withdrawal_out_of_bounds = True
+        if (approach[0] < 0 or approach[0] >= ROWS or approach[1] < 0 or approach[1] >= COLS):
+            approach_out_of_bounds = True
+        if( (not withdrawal_out_of_bounds) and self.board[withdrawal[0]][withdrawal[1]] == (not self.player) and self.board[approach[0]][approach[1]] != space ):
+            captures[capture_by_withdrawal] = True
+        if((not approach_out_of_bounds) and self.board[approach[0]][approach[1]] == (not self.player) and self.board[withdrawal[0]][withdrawal[1]] != space ):
+            captures[capture_by_approach] = True
+        return captures
+            
     def capture_move(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
@@ -181,6 +238,7 @@ class State:
                     temp = vector_sum(temp,vector)
                 else:
                     break
+            return move
         elif(self.capture == capture_by_withdrawal):
             vector = (-vector[0],-vector[1])
             temp = vector_sum(player_pos,vector)
@@ -196,22 +254,49 @@ class State:
                     temp = vector_sum(temp,vector)
                 else:
                     break
-        return self.board
-      
-    def move(self,player_pos,move):
+            return move
+        
+        return -1
+    def exclude_non_possible(self,player_pos,possible_moves):
+        temp = list()
+        for m in possible_moves:
+            if(self.possible_move(player_pos,m)):
+                temp.append(m)
+        return temp
+        
+    def move(self,player_pos,move,ai=False):
         xi,yi=player_pos
         x,y = move
         state_copy = deepcopy(self)
-        if(move in self.available_moves):
+        if(self.possible_move(player_pos,move)):
+            captures = self.evaluate_capture(player_pos,move)
+            if(ai==False):
+                if(captures[0] and captures[1]):
+                    choice=input("Enter 1 for approach, 2 for withdrawal\n")
+                    if(choice=="1"):
+                        state_copy.capture = capture_by_approach
+                    else:
+                        state_copy.capture = capture_by_withdrawal
+                elif(captures[0]):
+                    state_copy.capture = capture_by_approach
+                elif(captures[1]):
+                    state_copy.capture = capture_by_withdrawal
+                else:
+                    state_copy.capture = no_capture
             state_copy.capture_move(player_pos,move)
             state_copy.board[x][y] = self.board[xi][yi]
             state_copy.board[xi][yi] = space
-            state_copy.available_moves = state_copy.possible_moves(move)
-            if(state_copy.available_moves == []):
-                print("Invalid move")
-                return -1
+            state_copy.available_moves = state_copy.possible_moves(player_pos,move)
+            print(state_copy.available_moves)
             state_copy.check_win()     
-            state_copy.player = not self.player
+            if(state_copy.capture != no_capture):
+                state_copy.player = self.player
+            else:
+                state_copy.player = not self.player
+            if(state_copy.available_moves == []):
+                state_copy.player = not self.player
+                return state_copy
+            state_copy.capture = no_capture
             return state_copy
         else:
             print("Invalid move")
@@ -278,6 +363,7 @@ class State:
 
         
 class Piece(pygame.sprite.Sprite):
+
     
     def __init__(self, isWhite, x, y, placed=True):
         pygame.sprite.Sprite.__init__(self)
@@ -301,7 +387,9 @@ class Piece(pygame.sprite.Sprite):
     def drag(self, pos):
         self.rect.center = pos
 
-    def place(self, pos,state,revert=False):        
+    def place(self, pos,state,revert=False):    
+        global displayed
+
         for piece in self.groups()[0]:
             if piece.rect.collidepoint(pos) and piece is not self :
                 piece.placed = True
@@ -310,13 +398,10 @@ class Piece(pygame.sprite.Sprite):
                 self.isWhite = space
                 self.image.fill((255, 255, 255, 0))
                 self.rect.center = (128 + 48*self.x, 96 + 48*self.y)
-                if(not revert):
-                    temp = state.move((self.y, self.x), (piece.y, piece.x))
-                    return temp
+                return state.move((self.y, self.x), (piece.y, piece.x))
         
-        self.rect.center = (128 + 48*self.x, 96 + 48*self.y)
-        if(not revert):
-            return state.move((self.y, self.x), (self.y, self.x))
+        self.rect.center = (128 + 48*self.x, 96 + 48*self.y)        
+        return state.move((self.y, self.x), (self.y, self.x))
 
         
  
@@ -371,7 +456,8 @@ def main():
         pieces.update()
         pieces.draw(screen)
         pygame.display.flip()
-        global displayed
+        #print("Turn:", "White" if state.player else "Black")        
+
         if(mode=="1"):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
