@@ -73,12 +73,16 @@ class State:
         for y in range(9):
             for x in range(2):
                 self.board[x][y] = black
-        for y in range(9):
-            if(y != 4):
-                if(y%2==0):
-                    self.board[2][y] = black
-                else:
-                    self.board[2][y] = white
+        for y in range(4):
+            if(y%2==0):
+                self.board[2][y] = black
+            else:
+                self.board[2][y] = white
+        for y in range(5, 9):
+            if(y%2==0):
+                self.board[2][y] = white
+            else:
+                self.board[2][y] = black
         
         for y in range(9):
             for x in range(3, 5):
@@ -160,6 +164,8 @@ class State:
         else:
           vector = ((x-xi)//abs(x-xi),(y-yi)//abs(y-yi))
         
+        self.board[x][y] = self.player
+        self.board[xi][yi] = space
         if(self.capture == capture_by_approach):
             temp = vector_sum(move,vector)
             while(temp[0]>=0 and temp[0]<5 and temp[1]>=0 and temp[1]<9):
@@ -205,7 +211,10 @@ class State:
         else:
             print("Invalid move")
             return -1
-        
+    
+    def in_bounds(self, x, y):
+        return not (x < 0 or x >= ROWS or y < 0 or y >= COLS)
+
     def try_moves(self, x, y, in_sequence=False):
         states = []
         if not in_sequence:
@@ -222,21 +231,22 @@ class State:
             if in_sequence and (dir == self.last_dir or moved_pos in self.capture_positions):
                 continue
 
-            self.last_dir = dir
-            self.capture_positions.append(moved_pos)
-
             front_x, front_y = vector_sum(moved_pos, dir)
             back_x, back_y = vector_sub((x, y), dir)
 
-            if self.board[front_x][front_y] == (not self.player):
+            if self.in_bounds(front_x, front_y) and self.board[front_x][front_y] == (not self.player):
                 state_copy = deepcopy(self)
                 state_copy.capture = capture_by_approach
+                state_copy.last_dir = dir
+                state_copy.capture_positions.append(moved_pos)
 
                 state_copy.capture_move((x, y), moved_pos)
                 states.extend(state_copy.try_moves(moved_pos[0], moved_pos[1], True))
-            if self.board[back_x][back_y] == (not self.player):
+            if self.in_bounds(back_x, back_y) and self.board[back_x][back_y] == (not self.player):
                 state_copy = deepcopy(self)
                 state_copy.capture = capture_by_withdrawal
+                state_copy.last_dir = dir
+                state_copy.capture_positions.append(moved_pos)
 
                 state_copy.capture_move((x, y), moved_pos)
                 states.extend(state_copy.try_moves(moved_pos[0], moved_pos[1], True))
