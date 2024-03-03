@@ -206,9 +206,9 @@ class State:
             approach_out_of_bounds = True
         print("Withdrawal",withdrawal_out_of_bounds)
         print("Approach",approach_out_of_bounds)
-        if( (not withdrawal_out_of_bounds) and self.board[withdrawal[0]][withdrawal[1]] == (not self.player) and self.board[approach[0]][approach[1]] != space ):
+        if( (not withdrawal_out_of_bounds) and self.board[withdrawal[0]][withdrawal[1]] == (not self.player) ):
             captures[capture_by_withdrawal] = True
-        if((not approach_out_of_bounds) and self.board[approach[0]][approach[1]] == (not self.player) and self.board[withdrawal[0]][withdrawal[1]] != space ):
+        if((not approach_out_of_bounds) and self.board[approach[0]][approach[1]] == (not self.player) ):
             captures[capture_by_approach] = True
         return captures
             
