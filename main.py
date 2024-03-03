@@ -364,7 +364,7 @@ def main():
     running = True
     dragging = None
     pieces=update_sprite(game,screen)
-    mode=input("Enter 1 for Human vs Human, 2 for Human vs AI, 3 for AI vs AI")
+    mode=input("Enter 1 for Human vs Human, 2 for Human vs AI, 3 for AI vs AI\n")
     while running and game.winner == 2:
         draw_bg(screen)
         pieces = update_sprite(state,screen)
