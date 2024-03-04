@@ -133,18 +133,8 @@ class State:
         temp_down_left = down_left
         temp_down_right = down_right
         temp_avalable_moves = list()
-        print("Player pos",player_pos)
-        print("Move",move)
         eval_vec=(move[0]-player_pos[0],move[1]-player_pos[1])
-        print(eval_vec)
-        print(is_same_orientation(eval_vec,temp_up))
-        print(is_same_orientation(eval_vec,temp_down))
-        print(is_same_orientation(eval_vec,temp_left))
-        print(is_same_orientation(eval_vec,temp_right))
-        print(is_same_orientation(eval_vec,temp_up_left))
-        print(is_same_orientation(eval_vec,temp_up_right))
-        print(is_same_orientation(eval_vec,temp_down_left))
-        print(is_same_orientation(eval_vec,temp_down_right))
+        
         while(self.possible_move(move,vector_sum(move,temp_up)) and (not is_same_orientation(eval_vec,temp_up))):
             temp_avalable_moves.append(vector_sum(move,temp_up))
             temp_up = vector_sum(temp_up,up)
@@ -171,6 +161,12 @@ class State:
             temp_down_right = vector_sum(temp_down_right,down_right)
         if(move in temp_avalable_moves):
             temp_avalable_moves.remove(move)
+        for m in temp_avalable_moves:
+            captures = self.evaluate_capture(move,m)
+            if(not(captures[0]) and not(captures[1])):
+                print("removing",m)
+                temp_avalable_moves.remove(m)
+        print(temp_avalable_moves)
         return temp_avalable_moves
     
     def possible_moves_2(self, x, y):
@@ -194,22 +190,16 @@ class State:
           vector = (0,0)
         else:
           vector = ((x-xi)//abs(x-xi),(y-yi)//abs(y-yi))
-
+        print(move,vector)
         withdrawal = vector_sum(player_pos,(-vector[0],-vector[1]))
         approach = vector_sum(move,vector)
-        withdrawal_out_of_bounds=False
-        approach_out_of_bounds=False
         
-        if (withdrawal[0] < 0 or withdrawal[0] >= ROWS or withdrawal[1] < 0 or withdrawal[1] >= COLS):
-            withdrawal_out_of_bounds = True
-        if (approach[0] < 0 or approach[0] >= ROWS or approach[1] < 0 or approach[1] >= COLS):
-            approach_out_of_bounds = True
-        print("Withdrawal",withdrawal_out_of_bounds)
-        print("Approach",approach_out_of_bounds)
-        if( (not withdrawal_out_of_bounds) and self.board[withdrawal[0]][withdrawal[1]] == (not self.player) ):
-            captures[capture_by_withdrawal] = True
-        if((not approach_out_of_bounds) and self.board[approach[0]][approach[1]] == (not self.player) ):
-            captures[capture_by_approach] = True
+        if ((withdrawal[0] >= 0 and withdrawal[0] < ROWS) and (withdrawal[1] >= 0 and withdrawal[1] < COLS)):
+            if(self.board[withdrawal[0]][withdrawal[1]] == (not self.player) and self.board[withdrawal[0]][withdrawal[1]] != space):
+                captures[capture_by_withdrawal] = True
+        if ((approach[0] >= 0 and approach[0] < ROWS) and (approach[1] >= 0 and approach[1] < COLS) and self.board[approach[0]][approach[1]] != space):
+            if( self.board[approach[0]][approach[1]] == (not self.player) ):
+                captures[capture_by_approach] = True
         return captures
             
     def capture_move(self,player_pos,move):
@@ -290,7 +280,6 @@ class State:
             state_copy.board[x][y] = self.board[xi][yi]
             state_copy.board[xi][yi] = space
             state_copy.available_moves = state_copy.possible_moves(player_pos,move)
-            print(state_copy.available_moves)
             state_copy.check_win()     
             if(state_copy.capture != no_capture):
                 state_copy.player = self.player
