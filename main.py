@@ -260,8 +260,8 @@ class State:
         state_copy = deepcopy(self)
 
         if(self.possible_move(player_pos,move)):
-            captures = self.evaluate_capture(player_pos,move)
             
+            captures = self.evaluate_capture(player_pos,move)
             if(captures[0] and captures[1]):
                 if(ai==False):
                     choice=input("Enter 1 for approach, 2 for withdrawal\n")
@@ -269,6 +269,7 @@ class State:
                         state_copy.capture = capture_by_approach
                     else:
                         state_copy.capture = capture_by_withdrawal
+                
             elif(captures[0]):
                 state_copy.capture = capture_by_approach
             elif(captures[1]):
@@ -301,9 +302,7 @@ class State:
                     state_copy.board[x][y] = space
                 state_copy.move_pos = []
                 state_copy.player = not self.player
-                
-            #no more moves
-            
+                            
             
             state_copy.capture = no_capture
             return state_copy
