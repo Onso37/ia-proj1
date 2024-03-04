@@ -80,6 +80,7 @@ class State:
         self.white_captured = 0
         self.black_captured = 0
         self.available_moves = [(2,4)]
+        self.moved_pos = []
         self.winner = 2 #2 for no winner, 0 for black, 1 for white
         for y in range(9):
             for x in range(2):
@@ -123,7 +124,7 @@ class State:
 
         return False
     
-    def possible_moves(self,player_pos,move):
+    def possible_moves(self,player_pos,move,previous_state=None):
         temp_left = left
         temp_right = right
         temp_up = up
@@ -159,13 +160,13 @@ class State:
         while(self.possible_move(move,vector_sum(move,temp_down_right))and (not is_same_orientation(eval_vec,temp_down_right))):
             temp_avalable_moves.append(vector_sum(move,temp_down_right))
             temp_down_right = vector_sum(temp_down_right,down_right)
-        if(player_pos in temp_avalable_moves):
-            temp_avalable_moves.remove(player_pos)
-        for m in temp_avalable_moves:
-            captures = self.evaluate_capture(move,m)
-            if(not(captures[0]) and not(captures[1])):
-                print("removing",m)
-                temp_avalable_moves.remove(m)
+        print(temp_avalable_moves)
+        print(previous_state.moved_pos)
+        
+        temp_avalable_moves = [m for m in temp_avalable_moves if ((self.evaluate_capture(move,m)[0] or self.evaluate_capture(move,m)[1]) and (m not in previous_state.moved_pos))]
+        
+            
+        
         print(temp_avalable_moves)
         return temp_avalable_moves
     
@@ -190,7 +191,6 @@ class State:
           vector = (0,0)
         else:
           vector = ((x-xi)//abs(x-xi),(y-yi)//abs(y-yi))
-        print(move,vector)
         withdrawal = vector_sum(player_pos,(-vector[0],-vector[1]))
         approach = vector_sum(move,vector)
         
@@ -250,48 +250,65 @@ class State:
             return move
         
         return -1
-    def exclude_non_possible(self,player_pos,possible_moves):
-        temp = list()
-        for m in possible_moves:
-            if(self.possible_move(player_pos,m)):
-                temp.append(m)
-        return temp
+    
         
     def move(self,player_pos,move,ai=False):
+        global displayed
+        displayed = False
         xi,yi=player_pos
         x,y = move
         state_copy = deepcopy(self)
+
         if(self.possible_move(player_pos,move)):
             captures = self.evaluate_capture(player_pos,move)
-            if(ai==False):
-                if(captures[0] and captures[1]):
+            
+            if(captures[0] and captures[1]):
+                if(ai==False):
                     choice=input("Enter 1 for approach, 2 for withdrawal\n")
                     if(choice=="1"):
                         state_copy.capture = capture_by_approach
                     else:
                         state_copy.capture = capture_by_withdrawal
-                elif(captures[0]):
-                    state_copy.capture = capture_by_approach
-                elif(captures[1]):
-                    state_copy.capture = capture_by_withdrawal
-                else:
-                    state_copy.capture = no_capture
+            elif(captures[0]):
+                state_copy.capture = capture_by_approach
+            elif(captures[1]):
+                state_copy.capture = capture_by_withdrawal
+            else:
+                state_copy.capture = no_capture
             state_copy.capture_move(player_pos,move)
             state_copy.board[x][y] = self.board[xi][yi]
             state_copy.board[xi][yi] = space
-            state_copy.available_moves = state_copy.possible_moves(player_pos,move)
-            state_copy.check_win()     
+            state_copy.available_moves = state_copy.possible_moves(player_pos,move,self)
+            state_copy.check_win() 
+            #case has capture    
             if(state_copy.capture != no_capture):
-                state_copy.player = self.player
+                if(ai==False):
+                    if(state_copy.available_moves!=[]):
+                        choice = input("Enter 1 to continue capturing, 2 to end turn\n")
+                        if(choice == "1"):                            
+                                state_copy.player = self.player
+                                state_copy.moved_pos.append(player_pos)
+                        else:
+                            state_copy.moved_pos = []
+                            state_copy.player = not self.player
+                    else:
+                        print("No more moves")
+                        state_copy.player = not self.player
+                        state_copy.moved_pos = []
             else:
+                if(state_copy.available_moves == []):
+                    state_copy.board[xi][yi] = self.board[xi][yi]
+                    state_copy.board[x][y] = space
+                state_copy.move_pos = []
                 state_copy.player = not self.player
-                state_copy.board[xi][yi] = self.board[xi][yi]
-                state_copy.board[x][y] = space
-            if(state_copy.available_moves == []):
-                state_copy.player = not self.player
-                return state_copy
+                
+            #no more moves
+            
+            
             state_copy.capture = no_capture
             return state_copy
+           
+
         else:
             print("Invalid move")
             return -1
@@ -414,9 +431,7 @@ class Piece(pygame.sprite.Sprite):
     def drag(self, pos):
         self.rect.center = pos
 
-    def place(self, pos,state,revert=False):    
-        global displayed
-
+    def place(self, pos,state):    
         for piece in self.groups()[0]:
             if piece.rect.collidepoint(pos) and piece is not self :
                 piece.placed = True
@@ -426,7 +441,6 @@ class Piece(pygame.sprite.Sprite):
                 self.image.fill((255, 255, 255, 0))
                 self.rect.center = (128 + 48*self.x, 96 + 48*self.y)
                 return state.move((self.y, self.x), (piece.y, piece.x))
-        
         self.rect.center = (128 + 48*self.x, 96 + 48*self.y)        
         return state.move((self.y, self.x), (self.y, self.x))
 
@@ -476,6 +490,7 @@ def main():
     running = True
     dragging = None
     pieces=update_sprite(game,screen)
+    global displayed
     mode=input("Enter 1 for Human vs Human, 2 for Human vs AI, 3 for AI vs AI\n")
     while running and game.winner == 2:
         draw_bg(screen)
@@ -483,8 +498,9 @@ def main():
         pieces.update()
         pieces.draw(screen)
         pygame.display.flip()
-        #print("Turn:", "White" if state.player else "Black")        
-
+        if(not displayed):
+            print("Turn:", "White" if state.player else "Black")        
+            displayed = True
         if(mode=="1"):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
