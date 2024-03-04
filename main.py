@@ -159,8 +159,8 @@ class State:
         while(self.possible_move(move,vector_sum(move,temp_down_right))and (not is_same_orientation(eval_vec,temp_down_right))):
             temp_avalable_moves.append(vector_sum(move,temp_down_right))
             temp_down_right = vector_sum(temp_down_right,down_right)
-        if(move in temp_avalable_moves):
-            temp_avalable_moves.remove(move)
+        if(player_pos in temp_avalable_moves):
+            temp_avalable_moves.remove(player_pos)
         for m in temp_avalable_moves:
             captures = self.evaluate_capture(move,m)
             if(not(captures[0]) and not(captures[1])):
