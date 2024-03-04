@@ -478,7 +478,7 @@ def update_sprite(state,screen):
 def main():
      
     state = State()
-    test = state.get_available_moves()
+    test = state.get_all_moves()
 
     pygame.init()
     pygame.display.set_caption("Fanorona")
