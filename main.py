@@ -309,7 +309,7 @@ class State:
         
         for dir in self.possible_moves_2(x, y):
             moved_pos = vector_sum((x, y), dir)
-            if self.board[moved_pos[0], moved_pos[1]] != space:
+            if self.in_bounds(moved_pos[0], moved_pos[1]) and self.board[moved_pos[0], moved_pos[1]] != space:
                 continue
 
             if in_sequence and (dir == self.last_dir or moved_pos in self.capture_positions):
@@ -337,7 +337,25 @@ class State:
 
         return states
 
-    def get_available_moves(self):
+    def try_non_captures(self, x, y):
+        states = []
+
+        for dir in self.possible_moves_2(x, y):
+            moved_pos = vector_sum((x, y), dir)
+            if self.in_bounds(moved_pos[0], moved_pos[1]) and self.board[moved_pos[0], moved_pos[1]] != space:
+                continue
+
+            state_copy = deepcopy(self)
+            state_copy.capture = no_capture
+            state_copy.board[x][y] = space
+            state_copy.board[moved_pos[0]][moved_pos[1]] = self.player
+            states.append(state_copy)
+        
+        return states
+
+
+
+    def get_available_captures(self):
         states = []
         for x in range(ROWS):
             for y in range(COLS):
@@ -345,6 +363,21 @@ class State:
                     states.extend(self.try_moves(x, y))
 
         return states
+    
+    def get_available_non_captures(self):
+        states = []
+        for x in range(ROWS):
+            for y in range(COLS):
+                if self.board[x][y] == self.player:
+                    states.extend(self.try_non_captures(x, y))
+
+        return states
+    
+    def get_all_moves(self):
+        moves = self.get_available_captures()
+        if len(moves) == 0:
+            moves = self.get_available_non_captures()
+        return moves
 
     def check_win(self):
         if self.white_pieces == 0:
