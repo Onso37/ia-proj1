@@ -477,8 +477,6 @@ def update_sprite(state,screen):
 
 def get_pygame_input(screen, font, opts):
     opts = list(map(lambda num, opt: f"{num}: {opt}", range(1, len(opts)+1), opts))
-    #text = functools.reduce(lambda acc, opt: acc + "\n" + opt, opts)
-    display_texts = []
     for i in range(len(opts)):
         display_text = font.render(opts[len(opts)-i-1], True, (0,0,0))
         textRect = display_text.get_rect()
@@ -516,8 +514,7 @@ def main():
     pieces.update()
     pieces.draw(screen)
     pygame.display.flip()
-    get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs AI"])
-    mode=input("Enter 1 for Human vs Human, 2 for Human vs AI, 3 for AI vs AI\n")
+    mode=get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs AI"])
     while running and game.winner == 2:
         draw_bg(screen)
         #pieces = update_sprite(state,screen)
