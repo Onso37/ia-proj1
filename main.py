@@ -253,7 +253,7 @@ class State:
         return -1
     
         
-    def move(self,player_pos,move,ai=False):
+    def move(self,player_pos,move,screen,font,ai=False):
         global displayed
         displayed = False
         xi,yi=player_pos
@@ -265,8 +265,9 @@ class State:
             captures = self.evaluate_capture(player_pos,move)
             if(captures[0] and captures[1]):
                 if(ai==False):
-                    choice=input("Enter 1 for approach, 2 for withdrawal\n")
-                    if(choice=="1"):
+                    #choice=input("Enter 1 for approach, 2 for withdrawal\n")
+                    choice=get_pygame_input(screen, font, ["Approach", "Withdrawal"])
+                    if(choice==1):
                         state_copy.capture = capture_by_approach
                     else:
                         state_copy.capture = capture_by_withdrawal
@@ -286,8 +287,9 @@ class State:
             if(state_copy.capture != no_capture):
                 if(ai==False):
                     if(state_copy.available_moves!=[]):
-                        choice = input("Enter 1 to continue capturing, 2 to end turn\n")
-                        if(choice == "1"):                            
+                        #choice = input("Enter 1 to continue capturing, 2 to end turn\n")
+                        choice = get_pygame_input(screen, font, ["Continue capturing", "End turn"])
+                        if(choice == 1):                            
                                 state_copy.player = self.player
                                 state_copy.moved_pos.append(player_pos)
                         else:
@@ -431,7 +433,7 @@ class Piece(pygame.sprite.Sprite):
     def drag(self, pos):
         self.rect.center = pos
 
-    def place(self, pos,state):    
+    def place(self, pos,state, screen, font):    
         for piece in self.groups()[0]:
             if piece.rect.collidepoint(pos) and piece is not self :
                 piece.placed = True
@@ -440,9 +442,9 @@ class Piece(pygame.sprite.Sprite):
                 self.isWhite = space
                 self.image.fill((255, 255, 255, 0))
                 self.rect.center = (128 + 48*self.x, 96 + 48*self.y)
-                return state.move((self.y, self.x), (piece.y, piece.x))
+                return state.move((self.y, self.x), (piece.y, piece.x), screen, font)
         self.rect.center = (128 + 48*self.x, 96 + 48*self.y)        
-        return state.move((self.y, self.x), (self.y, self.x))
+        return state.move((self.y, self.x), (self.y, self.x), screen, font)
 
         
  
@@ -487,7 +489,10 @@ def get_pygame_input(screen, font, opts):
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 key = pygame.key.name(event.key)
-                if key >= '0' and key <= str(len(opts)-1):
+                if key >= '1' and key <= str(len(opts)):
+                    rect = pygame.rect.Rect(0, 480-24*(len(opts)-1), 640, 24*(len(opts)-1))
+                    screen.fill((255,255,255, 255), rect=rect)
+                    pygame.display.flip()
                     return int(key)
 
 
@@ -535,7 +540,7 @@ def main():
                             piece.dragging = True
                 if event.type == pygame.MOUSEBUTTONUP and dragging:
                     temp = state
-                    next_state= dragging.place(pygame.mouse.get_pos(),state)
+                    next_state= dragging.place(pygame.mouse.get_pos(),state, screen, font)
                     if(next_state != -1):
                         state = next_state
                     else:
