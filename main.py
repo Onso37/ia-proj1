@@ -253,7 +253,7 @@ class State:
         return -1
     
         
-    def move(self,player_pos,move,screen,font,ai=False):
+    def move(self,player_pos,move,screen,font):
         global displayed
         displayed = False
         xi,yi=player_pos
@@ -264,13 +264,12 @@ class State:
             
             captures = self.evaluate_capture(player_pos,move)
             if(captures[0] and captures[1]):
-                if(ai==False):
-                    #choice=input("Enter 1 for approach, 2 for withdrawal\n")
-                    choice=get_pygame_input(screen, font, ["Approach", "Withdrawal"])
-                    if(choice==1):
-                        state_copy.capture = capture_by_approach
-                    else:
-                        state_copy.capture = capture_by_withdrawal
+                #choice=input("Enter 1 for approach, 2 for withdrawal\n")
+                choice=get_pygame_input(screen, font, ["Approach", "Withdrawal"])
+                if(choice==1):
+                    state_copy.capture = capture_by_approach
+                else:
+                    state_copy.capture = capture_by_withdrawal
                 
             elif(captures[0]):
                 state_copy.capture = capture_by_approach
@@ -285,20 +284,19 @@ class State:
             state_copy.check_win() 
             #case has capture    
             if(state_copy.capture != no_capture):
-                if(ai==False):
-                    if(state_copy.available_moves!=[]):
-                        #choice = input("Enter 1 to continue capturing, 2 to end turn\n")
-                        choice = get_pygame_input(screen, font, ["Continue capturing", "End turn"])
-                        if(choice == 1):                            
-                                state_copy.player = self.player
-                                state_copy.moved_pos.append(player_pos)
-                        else:
-                            state_copy.moved_pos = []
-                            state_copy.player = not self.player
+                if(state_copy.available_moves!=[]):
+                    #choice = input("Enter 1 to continue capturing, 2 to end turn\n")
+                    choice = get_pygame_input(screen, font, ["Continue capturing", "End turn"])
+                    if(choice == 1):                            
+                            state_copy.player = self.player
+                            state_copy.moved_pos.append(player_pos)
                     else:
-                        print("No more moves")
-                        state_copy.player = not self.player
                         state_copy.moved_pos = []
+                        state_copy.player = not self.player
+                else:
+                    print("No more moves")
+                    state_copy.player = not self.player
+                    state_copy.moved_pos = []
             else:
                 if(state_copy.available_moves == []):
                     state_copy.board[xi][yi] = self.board[xi][yi]
