@@ -2,6 +2,7 @@
 import pygame
 import numpy
 import time
+import functools 
 from copy import deepcopy
 
 
@@ -473,6 +474,26 @@ def update_sprite(state,screen):
                 piece = Piece(space, x, y, False)
                 pieces.add(piece)
     return pieces
+
+def get_pygame_input(screen, font, opts):
+    opts = list(map(lambda num, opt: f"{num}: {opt}", range(1, len(opts)+1), opts))
+    #text = functools.reduce(lambda acc, opt: acc + "\n" + opt, opts)
+    display_texts = []
+    for i in range(len(opts)):
+        display_text = font.render(opts[len(opts)-i-1], True, (0,0,0))
+        textRect = display_text.get_rect()
+        textRect.bottomleft = (0, 480-24*i)
+        screen.blit(display_text, textRect)
+    pygame.display.flip()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                key = pygame.key.name(event.key)
+                if key >= '0' and key <= str(len(opts)-1):
+                    return int(key)
+
+
+
 # define a main function
 def main():
      
@@ -481,6 +502,7 @@ def main():
 
     pygame.init()
     pygame.display.set_caption("Fanorona")
+    font = pygame.font.Font(pygame.font.get_default_font(), 24)
      
     # create a surface on screen that has the size of 640 x 480
     screen = pygame.display.set_mode((640,480))
@@ -490,6 +512,11 @@ def main():
     dragging = None
     pieces=update_sprite(game,screen)
     global displayed
+    draw_bg(screen)
+    pieces.update()
+    pieces.draw(screen)
+    pygame.display.flip()
+    get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs AI"])
     mode=input("Enter 1 for Human vs Human, 2 for Human vs AI, 3 for AI vs AI\n")
     while running and game.winner == 2:
         draw_bg(screen)
