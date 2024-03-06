@@ -524,7 +524,7 @@ def main():
         if(not displayed):
             print("Turn:", "White" if state.player else "Black")        
             displayed = True
-        if(mode=="1"):
+        if(mode==1):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
