@@ -2,6 +2,7 @@
 import pygame
 import numpy
 import time
+import random
 import functools 
 from copy import deepcopy
 
@@ -493,7 +494,42 @@ def get_pygame_input(screen, font, opts):
                     pygame.display.flip()
                     return int(key)
 
+def execute_player_move(screen, font, state, pieces):
+    dragging = None
+    running = True
+    while running:
+        draw_bg(screen)
+        #pieces = update_sprite(state,screen)
+        pieces.update()
+        pieces.draw(screen)
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN and not dragging:
+                for piece in pieces:
+                    if piece.rect.collidepoint(pygame.mouse.get_pos()):
+                        dragging = piece
+                        piece.dragging = True
+            if event.type == pygame.MOUSEBUTTONUP and dragging:
+                temp = state
+                next_state= dragging.place(pygame.mouse.get_pos(),state, screen, font)
+                if(next_state != -1):
+                    state = next_state
+                else:
+                    state = temp
+                pieces = update_sprite(state,screen)
+                dragging = None
+                return state, pieces
+            if event.type == pygame.MOUSEMOTION and dragging:
+                dragging.drag(pygame.mouse.get_pos())
 
+def execute_random_move(screen, font, state, pieces):
+    moves = state.get_all_moves()
+    move = random.choice(moves)
+    move.player = not move.player
+    pieces = update_sprite(move,screen)
+    return move, pieces
 
 # define a main function
 def main():
@@ -507,46 +543,31 @@ def main():
      
     # create a surface on screen that has the size of 640 x 480
     screen = pygame.display.set_mode((640,480))
-    game = State()
+    #game = State()
 
     running = True
-    dragging = None
-    pieces=update_sprite(game,screen)
+    pieces=update_sprite(state,screen)
     global displayed
     draw_bg(screen)
     pieces.update()
     pieces.draw(screen)
     pygame.display.flip()
     mode=get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs AI"])
-    while running and game.winner == 2:
-        draw_bg(screen)
-        #pieces = update_sprite(state,screen)
-        pieces.update()
-        pieces.draw(screen)
-        pygame.display.flip()
+    players = None
+    if mode == 1:
+        players = (1, 1)
+    elif mode == 2:
+        players = (2, 1)
+    elif mode == 3:
+        players = (2, 2)
+    while running and state.winner == 2:
         if(not displayed):
             print("Turn:", "White" if state.player else "Black")        
             displayed = True
-        if(mode==1):
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.MOUSEBUTTONDOWN and not dragging:
-                    for piece in pieces:
-                        if piece.rect.collidepoint(pygame.mouse.get_pos()):
-                            dragging = piece
-                            piece.dragging = True
-                if event.type == pygame.MOUSEBUTTONUP and dragging:
-                    temp = state
-                    next_state= dragging.place(pygame.mouse.get_pos(),state, screen, font)
-                    if(next_state != -1):
-                        state = next_state
-                    else:
-                        state = temp
-                    pieces = update_sprite(state,screen)
-                    dragging = None
-                if event.type == pygame.MOUSEMOTION and dragging:
-                    dragging.drag(pygame.mouse.get_pos())
+        if players[state.player] == 1:
+            state, pieces = execute_player_move(screen, font, state, pieces)
+        elif players[state.player] == 2:
+            state, pieces = execute_random_move(screen, font, state, pieces)
 
 if __name__=="__main__":
     main()
