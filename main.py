@@ -477,7 +477,7 @@ def update_sprite(state,screen):
 def main():
      
     state = State()
-    test = state.get_all_moves()
+    #test = state.get_all_moves()
 
     pygame.init()
     pygame.display.set_caption("Fanorona")
@@ -493,7 +493,7 @@ def main():
     mode=input("Enter 1 for Human vs Human, 2 for Human vs AI, 3 for AI vs AI\n")
     while running and game.winner == 2:
         draw_bg(screen)
-        pieces = update_sprite(state,screen)
+        #pieces = update_sprite(state,screen)
         pieces.update()
         pieces.draw(screen)
         pygame.display.flip()
@@ -516,6 +516,7 @@ def main():
                         state = next_state
                     else:
                         state = temp
+                    pieces = update_sprite(state,screen)
                     dragging = None
                 if event.type == pygame.MOUSEMOTION and dragging:
                     dragging.drag(pygame.mouse.get_pos())
