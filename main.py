@@ -2,8 +2,10 @@
 import pygame
 import numpy
 import time
+from Piece import *
 import random
 import functools 
+from minimax import execute_minimax_move
 from copy import deepcopy
 
 
@@ -11,9 +13,7 @@ capture_by_approach=0
 capture_by_withdrawal=1
 no_capture=-1
 
-white = 1
-black = 0
-space = 2
+
 player_turn = white  #white starts
 left = (0,-1)
 right = (0, 1)
@@ -407,43 +407,7 @@ class State:
         return self.winner
 
         
-class Piece(pygame.sprite.Sprite):
 
-    
-    def __init__(self, isWhite, x, y, placed=True):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((36, 36), pygame.SRCALPHA)
-        self.rect = self.image.get_rect()
-        self.isWhite = isWhite
-        self.placed = placed
-
-        self.x = x
-        self.y = y
-        self.rect.center = (128 + 48*x, 96 + 48*y)
-
-    def update(self):
-        if self.placed:
-            if self.isWhite:
-                pygame.draw.circle(self.image, (255, 255, 255), (18, 18), 18)
-                pygame.draw.circle(self.image, (0,0,0), (18, 18), 18, width=2)
-            else:
-                pygame.draw.circle(self.image, (0,0,0), (18, 18), 18)
-
-    def drag(self, pos):
-        self.rect.center = pos
-
-    def place(self, pos,state, screen, font):    
-        for piece in self.groups()[0]:
-            if piece.rect.collidepoint(pos) and piece is not self :
-                piece.placed = True
-                self.placed = False
-                piece.isWhite = self.isWhite
-                self.isWhite = space
-                self.image.fill((255, 255, 255, 0))
-                self.rect.center = (128 + 48*self.x, 96 + 48*self.y)
-                return state.move((self.y, self.x), (piece.y, piece.x), screen, font)
-        self.rect.center = (128 + 48*self.x, 96 + 48*self.y)        
-        return state.move((self.y, self.x), (self.y, self.x), screen, font)
 
         
  
@@ -459,22 +423,6 @@ def draw_bg(screen):
     for x in range(4):
         for y in range(2):
             draw_motif(screen, 128 + 96*x, 96*(y+1), 96)
-
-def update_sprite(state,screen):
-    pieces = pygame.sprite.Group()
-
-    for x in range(9):
-        for y in range(5):
-            if (state.board[y][x] == white):
-                piece = Piece(white, x, y)
-                pieces.add(piece)
-            elif (state.board[y][x] == black): 
-                piece = Piece(black, x, y)
-                pieces.add(piece)
-            else:
-                piece = Piece(space, x, y, False)
-                pieces.add(piece)
-    return pieces
 
 def get_pygame_input(screen, font, opts):
     opts = list(map(lambda num, opt: f"{num}: {opt}", range(1, len(opts)+1), opts))
@@ -567,7 +515,7 @@ def main():
         if players[state.player] == 1:
             state, pieces = execute_player_move(screen, font, state, pieces)
         elif players[state.player] == 2:
-            state, pieces = execute_random_move(screen, font, state, pieces)
+            state, pieces = execute_minimax_move(screen, font, state, pieces)
 
 if __name__=="__main__":
     main()
