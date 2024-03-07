@@ -83,7 +83,7 @@ class State:
         self.black_captured = 0
         self.available_moves = [(2,4)]
         self.moved_pos = []
-        self.winner = 2 #2 for no winner, 0 for black, 1 for white
+        self.winner = 2 #2 no winner, 0 for black, 1 for white, -1 for no winner
         for y in range(9):
             for x in range(2):
                 self.board[x][y] = black
@@ -112,6 +112,9 @@ class State:
     def possible_move(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
+        xf,yf = x-xi,y-yi
+        if(abs(xf)>1 or abs(yf)>1):
+            return False
         if (x < 0 or x >= ROWS or y < 0 or y >= COLS):
             return False
         if(self.player != self.board[xi][yi] ): 
@@ -127,41 +130,26 @@ class State:
         return False
     
     def possible_moves(self,player_pos,move,previous_state=None):
-        temp_left = left
-        temp_right = right
-        temp_up = up
-        temp_down = down
-        temp_up_left = up_left
-        temp_up_right = up_right
-        temp_down_left = down_left
-        temp_down_right = down_right
+    
         temp_avalable_moves = list()
         eval_vec=(move[0]-player_pos[0],move[1]-player_pos[1])
         
-        while(self.possible_move(move,vector_sum(move,temp_up)) and (not is_same_orientation(eval_vec,temp_up))):
-            temp_avalable_moves.append(vector_sum(move,temp_up))
-            temp_up = vector_sum(temp_up,up)
-        while(self.possible_move(move,vector_sum(move,temp_down)) and (not is_same_orientation(eval_vec,temp_down))):
-            temp_avalable_moves.append(vector_sum(move,temp_down))
-            temp_down = vector_sum(temp_down,down)
-        while(self.possible_move(move,vector_sum(move,temp_left)) and (not is_same_orientation(eval_vec,temp_left))):
-            temp_avalable_moves.append(vector_sum(move,temp_left))
-            temp_left = vector_sum(temp_left,left)
-        while(self.possible_move(move,vector_sum(move,temp_right))and (not is_same_orientation(eval_vec,temp_right))):
-            temp_avalable_moves.append(vector_sum(move,temp_right))
-            temp_right = vector_sum(temp_right,right)
-        while(self.possible_move(move,vector_sum(move,temp_up_left))and (not is_same_orientation(eval_vec,temp_up_left))):
-            temp_avalable_moves.append(vector_sum(move,temp_up_left))
-            temp_up_left = vector_sum(temp_up_left,up_left)
-        while(self.possible_move(move,vector_sum(move,temp_up_right))and (not is_same_orientation(eval_vec,temp_up_right))):
-            temp_avalable_moves.append(vector_sum(move,temp_up_right))
-            temp_up_right = vector_sum(temp_up_right,up_right)
-        while(self.possible_move(move,vector_sum(move,temp_down_left))and (not is_same_orientation(eval_vec,temp_down_left))):
-            temp_avalable_moves.append(vector_sum(move,temp_down_left))
-            temp_down_left = vector_sum(temp_down_left,down_left)
-        while(self.possible_move(move,vector_sum(move,temp_down_right))and (not is_same_orientation(eval_vec,temp_down_right))):
-            temp_avalable_moves.append(vector_sum(move,temp_down_right))
-            temp_down_right = vector_sum(temp_down_right,down_right)
+        if(self.possible_move(move,vector_sum(move,up)) and (not is_same_orientation(eval_vec,up))):
+            temp_avalable_moves.append(vector_sum(move,up))
+        if(self.possible_move(move,vector_sum(move,down)) and (not is_same_orientation(eval_vec,down))):
+            temp_avalable_moves.append(vector_sum(move,down))
+        if(self.possible_move(move,vector_sum(move,left)) and (not is_same_orientation(eval_vec,left))):
+            temp_avalable_moves.append(vector_sum(move,left))
+        if(self.possible_move(move,vector_sum(move,right))and (not is_same_orientation(eval_vec,right))):
+            temp_avalable_moves.append(vector_sum(move,right))
+        if(self.possible_move(move,vector_sum(move,up_left))and (not is_same_orientation(eval_vec,up_left))):
+            temp_avalable_moves.append(vector_sum(move,up_left))
+        if(self.possible_move(move,vector_sum(move,up_right))and (not is_same_orientation(eval_vec,up_right))):
+            temp_avalable_moves.append(vector_sum(move,up_right))
+        if(self.possible_move(move,vector_sum(move,down_left))and (not is_same_orientation(eval_vec,down_left))):
+            temp_avalable_moves.append(vector_sum(move,down_left))
+        if(self.possible_move(move,vector_sum(move,down_right))and (not is_same_orientation(eval_vec,down_right))):
+            temp_avalable_moves.append(vector_sum(move,down_right))
         print(temp_avalable_moves)
         print(previous_state.moved_pos)
         
@@ -417,7 +405,12 @@ def draw_motif(screen, x, y, size):
     pygame.draw.line(screen, (0, 0, 0), (x, y+size/2), (x+size, y+size/2))
     pygame.draw.line(screen, (0, 0, 0), (x, y), (x+size, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size), (x+size, y))
-
+def announce_winner(winner,screen,font,opts):
+    display_text = font.render("", True, (0,0,0))
+    textRect = display_text.get_rect()
+    textRect.bottomleft = (0, 480-24)
+    screen.blit(display_text, textRect)
+    pygame.display.flip()
 def draw_bg(screen):
     screen.fill((255, 255, 255))
     for x in range(4):

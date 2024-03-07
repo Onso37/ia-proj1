@@ -6,7 +6,7 @@ import collections
 
 def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
     if depth == 0 or len(state.get_all_moves()) == 0:
-        return evaluate_func(player, state), -1
+        return evaluate_func(player, state), state
     
     if maximizing:
         maxEval = -math.inf
@@ -46,6 +46,7 @@ def heuristic1(player, state):
 
 def execute_minimax_move(screen, font, state, pieces):
     _, move = minimax(state, 2, -math.inf, math.inf, True, state.player, heuristic1)
+    winner = move.check_win()
     move.player = not move.player
     pieces = update_sprite(move, screen)
     return move, pieces
