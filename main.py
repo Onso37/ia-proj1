@@ -251,7 +251,7 @@ class State:
         state_copy = deepcopy(self)
 
         if(self.possible_move(player_pos,move)):
-            
+            print(self.available_moves)
             captures = self.evaluate_capture(player_pos,move)
             if(captures[0] and captures[1]):
                 #choice=input("Enter 1 for approach, 2 for withdrawal\n")
@@ -286,19 +286,22 @@ class State:
                         state_copy.player = not self.player
                 else:
                     print("No more moves for succesive capture")
+                    state_copy.capture = no_capture
                     state_copy.player = not self.player
                     state_copy.moved_pos = []
             else:
+                print("here")
                 if(state_copy.available_moves == [] and (self.capture != no_capture)):
                     if(self.available_moves!=[]):
                         print("Invalid Move")
                         return -1
                     state_copy.player = not self.player
                     
-                elif (self.available_moves == [] and (self.capture == no_capture)):
+                elif (self.available_moves == [] and (self.capture == no_capture) and (state_copy.available_moves != [] or state_copy.available_moves==[])):
                     print("First movement")
                     state_copy.moved_pos.append(player_pos)
                     state_copy.player = not self.player
+                
                 
             return state_copy
            
