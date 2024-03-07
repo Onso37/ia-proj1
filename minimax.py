@@ -8,10 +8,11 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
     if depth == 0 or len(state.get_all_moves()) == 0:
         return evaluate_func(player, state), -1
     
+    moves = state.get_all_moves()
     if maximizing:
         maxEval = -math.inf
         best_move = None
-        for move in state.get_all_moves():
+        for move in moves:
             eval, _ = minimax(move, depth-1, alpha, beta, False, player, evaluate_func)
             if (eval >= maxEval):
                 maxEval = eval
@@ -26,7 +27,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
     else:
         minEval = math.inf
         best_move = None
-        for move in state.get_all_moves():
+        for move in moves:
             eval, _ = minimax(move, depth-1, alpha, beta, True, player, evaluate_func)
             if (eval <= minEval):
                 minEval = eval
