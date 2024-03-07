@@ -113,9 +113,10 @@ class State:
         xi,yi=player_pos
         x,y = move
         xf,yf = x-xi,y-yi
-        if(abs(xf)>1 or abs(yf)>1):
-            return False
+        
         if (x < 0 or x >= ROWS or y < 0 or y >= COLS):
+            return False
+        if(abs(xf)>1 or abs(yf)>1):
             return False
         if(self.player != self.board[xi][yi] ): 
             return False
@@ -266,6 +267,7 @@ class State:
                 state_copy.capture = capture_by_withdrawal
             else:
                 state_copy.capture = no_capture
+            print(state_copy.capture)
             state_copy.capture_move(player_pos,move)
             state_copy.board[x][y] = self.board[xi][yi]
             state_copy.board[xi][yi] = space
@@ -283,18 +285,21 @@ class State:
                         state_copy.moved_pos = []
                         state_copy.player = not self.player
                 else:
-                    print("No more moves")
+                    print("No more moves for succesive capture")
                     state_copy.player = not self.player
                     state_copy.moved_pos = []
             else:
-                if(state_copy.available_moves == []):
-                    state_copy.board[xi][yi] = self.board[xi][yi]
-                    state_copy.board[x][y] = space
-                state_copy.move_pos = []
-                state_copy.player = not self.player
-                            
-            
-            state_copy.capture = no_capture
+                if(state_copy.available_moves == [] and (self.capture != no_capture)):
+                    if(self.available_moves!=[]):
+                        print("Invalid Move")
+                        return -1
+                    state_copy.player = not self.player
+                    
+                elif (self.available_moves == [] and (self.capture == no_capture)):
+                    print("First movement")
+                    state_copy.moved_pos.append(player_pos)
+                    state_copy.player = not self.player
+                
             return state_copy
            
 
@@ -405,12 +410,25 @@ def draw_motif(screen, x, y, size):
     pygame.draw.line(screen, (0, 0, 0), (x, y+size/2), (x+size, y+size/2))
     pygame.draw.line(screen, (0, 0, 0), (x, y), (x+size, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size), (x+size, y))
-def announce_winner(winner,screen,font,opts):
-    display_text = font.render("", True, (0,0,0))
+def announce_winner(winner,screen,font):
+    string_winner=""
+    if(winner==1):
+        string_winner="White wins"
+    elif(winner==0):
+        string_winner="Black wins"
+    else:
+        string_winner="Draw"
+    display_text = font.render(string_winner, True, (0,0,0))
     textRect = display_text.get_rect()
     textRect.bottomleft = (0, 480-24)
     screen.blit(display_text, textRect)
     pygame.display.flip()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                key = pygame.key.name(event.key)
+                if key == K_RETURN:
+                    return 0
 def draw_bg(screen):
     screen.fill((255, 255, 255))
     for x in range(4):
@@ -509,7 +527,7 @@ def main():
             state, pieces = execute_player_move(screen, font, state, pieces)
         elif players[state.player] == 2:
             state, pieces = execute_minimax_move(screen, font, state, pieces)
-    print(state.winner)
+    announce_winner(state.winner,screen,font)
 
 if __name__=="__main__":
     main()
