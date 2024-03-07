@@ -404,7 +404,12 @@ class State:
 
         
 
-
+def pygame_get_enter():
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    return 0
         
  
 def draw_motif(screen, x, y, size):
@@ -426,12 +431,7 @@ def announce_winner(winner,screen,font):
     textRect.bottomleft = (0, 480-24)
     screen.blit(display_text, textRect)
     pygame.display.flip()
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                key = pygame.key.name(event.key)
-                if key == K_RETURN:
-                    return 0
+    pygame_get_enter()
 def draw_bg(screen):
     screen.fill((255, 255, 255))
     for x in range(4):
@@ -523,6 +523,10 @@ def main():
     elif mode == 3:
         players = (2, 2)
     while running and state.winner == 2:
+        draw_bg(screen)
+        pieces.update()
+        pieces.draw(screen)
+        pygame.display.flip()
         if(not displayed):
             print("Turn:", "White" if state.player else "Black")        
             displayed = True
@@ -530,6 +534,7 @@ def main():
             state, pieces = execute_player_move(screen, font, state, pieces)
         elif players[state.player] == 2:
             state, pieces = execute_minimax_move(screen, font, state, pieces)
+            pygame_get_enter()
     announce_winner(state.winner,screen,font)
 
 if __name__=="__main__":
