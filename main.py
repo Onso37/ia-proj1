@@ -509,6 +509,7 @@ def main():
             state, pieces = execute_player_move(screen, font, state, pieces)
         elif players[state.player] == 2:
             state, pieces = execute_minimax_move(screen, font, state, pieces)
+    print(state.winner)
 
 if __name__=="__main__":
     main()
