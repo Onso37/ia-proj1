@@ -5,14 +5,16 @@ from Piece import update_sprite
 import collections
 
 def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
-    if depth == 0 or len(state.get_all_moves()) == 0:
+    if depth == 0:
         return evaluate_func(player, state), state
     
     moves = state.get_all_moves()
+    counter = 0
     if maximizing:
         maxEval = -math.inf
         best_move = None
         for move in moves:
+            counter += 1
             eval, _ = minimax(move, depth-1, alpha, beta, False, player, evaluate_func)
             if (eval >= maxEval):
                 maxEval = eval
@@ -23,11 +25,15 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
 
             if beta <= alpha:
                 break
+        
+        if counter == 0:
+            return evaluate_func(player, state), state
         return maxEval, best_move
     else:
         minEval = math.inf
         best_move = None
         for move in moves:
+            counter += 1
             eval, _ = minimax(move, depth-1, alpha, beta, True, player, evaluate_func)
             if (eval <= minEval):
                 minEval = eval
@@ -38,6 +44,9 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
 
             if beta <= alpha:
                 break
+
+        if counter == 0:
+            return evaluate_func(player, state), state
         return minEval, best_move
 
 def heuristic1(player, state):

@@ -314,12 +314,13 @@ class State:
         return not (x < 0 or x >= ROWS or y < 0 or y >= COLS)
 
     def try_moves(self, x, y, in_sequence=False):
-        states = []
+        #states = []
         if not in_sequence:
             self.last_dir = None
             self.capture_positions = [(x, y)]
         else:
-            states.append(self)
+            #states.append(self)
+            yield self
         
         for dir in self.possible_moves_2(x, y):
             moved_pos = vector_sum((x, y), dir)
@@ -339,7 +340,7 @@ class State:
                 state_copy.capture_positions.append(moved_pos)
 
                 state_copy.capture_move((x, y), moved_pos)
-                states.extend(state_copy.try_moves(moved_pos[0], moved_pos[1], True))
+                yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
             if self.in_bounds(back_x, back_y) and self.board[back_x][back_y] == (not self.player):
                 state_copy = deepcopy(self)
                 state_copy.capture = capture_by_withdrawal
@@ -347,12 +348,9 @@ class State:
                 state_copy.capture_positions.append(moved_pos)
 
                 state_copy.capture_move((x, y), moved_pos)
-                states.extend(state_copy.try_moves(moved_pos[0], moved_pos[1], True))
-
-        return states
-
+                yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
+                
     def try_non_captures(self, x, y):
-        states = []
 
         for dir in self.possible_moves_2(x, y):
             moved_pos = vector_sum((x, y), dir)
@@ -363,35 +361,31 @@ class State:
             state_copy.capture = no_capture
             state_copy.board[x][y] = space
             state_copy.board[moved_pos[0]][moved_pos[1]] = self.player
-            states.append(state_copy)
-        
-        return states
+            yield state_copy
 
 
 
     def get_available_captures(self):
-        states = []
         for x in range(ROWS):
             for y in range(COLS):
                 if self.board[x][y] == self.player:
-                    states.extend(self.try_moves(x, y))
-
-        return states
+                    yield from self.try_moves(x, y)
     
     def get_available_non_captures(self):
-        states = []
         for x in range(ROWS):
             for y in range(COLS):
                 if self.board[x][y] == self.player:
-                    states.extend(self.try_non_captures(x, y))
-
-        return states
+                    yield from self.try_non_captures(x, y)
     
     def get_all_moves(self):
-        moves = self.get_available_captures()
-        if len(moves) == 0:
-            moves = self.get_available_non_captures()
-        return moves
+        counter = 0
+        for move in self.get_available_captures():
+            counter += 1
+            yield move
+
+        if counter == 0:
+            for move in self.get_available_non_captures():
+                yield move
 
     def check_win(self):
         if self.white_pieces == 0:
