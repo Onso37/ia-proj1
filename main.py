@@ -72,7 +72,7 @@ def is_same_orientation(vector1, vector2):
 
 class State:
     def __init__(self):
-        self.board = numpy.zeros((5,9))
+        self.board = numpy.zeros((ROWS,COLS))
         self.player = 1
         self.capture = no_capture
         self.last_dir = None
@@ -81,27 +81,27 @@ class State:
         self.black_pieces = 22
         self.white_captured = 0
         self.black_captured = 0
-        self.available_moves = [(2,4)]
+        self.available_moves = [(ROWS//2,COLS//2)]
         self.moved_pos = []
         self.winner = 2 #2 no winner, 0 for black, 1 for white, -1 for no winner
-        for y in range(9):
-            for x in range(2):
+        for y in range(COLS):
+            for x in range(ROWS//2):
                 self.board[x][y] = black
-        for y in range(4):
+        for y in range(COLS//2):
             if(y%2==0):
-                self.board[2][y] = black
+                self.board[ROWS//2][y] = black
             else:
-                self.board[2][y] = white
-        for y in range(5, 9):
+                self.board[ROWS//2][y] = white
+        for y in range((COLS//2) + 1, COLS):
             if(y%2==0):
-                self.board[2][y] = white
+                self.board[ROWS//2][y] = white
             else:
-                self.board[2][y] = black
+                self.board[ROWS//2][y] = black
         
-        for y in range(9):
-            for x in range(3, 5):
+        for y in range(COLS):
+            for x in range((ROWS//2)+1, ROWS):
                 self.board[x][y] = white
-        self.board[2][4] = space
+        self.board[ROWS//2][COLS//2] = space
     def has_diagonal(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
