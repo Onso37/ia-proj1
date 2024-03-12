@@ -27,7 +27,7 @@ directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 displayed = False
 
 ROWS = 5
-COLS = 9
+COLS = 5
 
 def turn_change():
     global player_turn
@@ -418,8 +418,8 @@ def announce_winner(winner,screen,font):
     pygame_get_enter()
 def draw_bg(screen):
     screen.fill((255, 255, 255))
-    for x in range(4):
-        for y in range(2):
+    for x in range(COLS//2):
+        for y in range(ROWS//2):
             draw_motif(screen, 128 + 96*x, 96*(y+1), 96)
 
 def get_pygame_input(screen, font, opts):
@@ -464,7 +464,7 @@ def execute_player_move(screen, font, state, pieces):
                     state = next_state
                 else:
                     state = temp
-                pieces = update_sprite(state,screen)
+                pieces = update_sprite(state,screen,ROWS,COLS)
                 dragging = None
                 return state, pieces
             if event.type == pygame.MOUSEMOTION and dragging:
@@ -474,7 +474,7 @@ def execute_random_move(screen, font, state, pieces):
     moves = state.get_all_moves()
     move = random.choice(moves)
     move.player = not move.player
-    pieces = update_sprite(move,screen)
+    pieces = update_sprite(move,screen,ROWS,COLS)
     return move, pieces
 
 # define a main function
@@ -492,7 +492,7 @@ def main():
     #game = State()
 
     running = True
-    pieces=update_sprite(state,screen)
+    pieces=update_sprite(state,screen,ROWS,COLS)
     global displayed
     draw_bg(screen)
     pieces.update()
@@ -508,6 +508,7 @@ def main():
         players = (2, 2)
     while running and state.winner == 2:
         draw_bg(screen)
+        pieces = update_sprite(state, screen, ROWS, COLS)
         pieces.update()
         pieces.draw(screen)
         pygame.display.flip()

@@ -58,5 +58,5 @@ def execute_minimax_move(screen, font, state, pieces):
     _, move = minimax(state, 2, -math.inf, math.inf, True, state.player, heuristic1)
     winner = move.check_win()
     move.player = not move.player
-    pieces = update_sprite(move, screen)
+    #pieces = update_sprite(move, screen)
     return move, pieces
