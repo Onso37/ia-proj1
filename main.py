@@ -77,8 +77,8 @@ class State:
         self.capture = no_capture
         self.last_dir = None
         self.capture_positions = []
-        self.white_pieces = 22
-        self.black_pieces = 22
+        self.white_pieces = (ROWS * COLS)//2
+        self.black_pieces = (ROWS * COLS)//2
         self.white_captured = 0
         self.black_captured = 0
         self.available_moves = [(ROWS//2,COLS//2)]
@@ -196,7 +196,7 @@ class State:
         self.board[xi][yi] = space
         if(self.capture == capture_by_approach):
             temp = vector_sum(move,vector)
-            while(temp[0]>=0 and temp[0]<5 and temp[1]>=0 and temp[1]<9):
+            while(temp[0]>=0 and temp[0]<ROWS and temp[1]>=0 and temp[1]<COLS):
                 if(self.board[temp[0]][temp[1]] != self.player and self.board[temp[0]][temp[1]] != space):
                     if(self.player==white):
                         self.black_captured += 1
@@ -212,7 +212,7 @@ class State:
         elif(self.capture == capture_by_withdrawal):
             vector = (-vector[0],-vector[1])
             temp = vector_sum(player_pos,vector)
-            while(temp[0]>=0 and temp[0]<5 and temp[1]>=0 and temp[1]<9):
+            while(temp[0]>=0 and temp[0]<ROWS and temp[1]>=0 and temp[1]<COLS):
                 if(self.board[temp[0]][temp[1]] != self.player and self.board[temp[0]][temp[1]] != space):
                     if(self.player==white):
                         self.black_captured += 1
