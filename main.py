@@ -135,24 +135,10 @@ class State:
         temp_avalable_moves = list()
         eval_vec=(move[0]-player_pos[0],move[1]-player_pos[1])
         
-        if(self.possible_move(move,vector_sum(move,up)) and (not is_same_orientation(eval_vec,up))):
-            temp_avalable_moves.append(vector_sum(move,up))
-        if(self.possible_move(move,vector_sum(move,down)) and (not is_same_orientation(eval_vec,down))):
-            temp_avalable_moves.append(vector_sum(move,down))
-        if(self.possible_move(move,vector_sum(move,left)) and (not is_same_orientation(eval_vec,left))):
-            temp_avalable_moves.append(vector_sum(move,left))
-        if(self.possible_move(move,vector_sum(move,right))and (not is_same_orientation(eval_vec,right))):
-            temp_avalable_moves.append(vector_sum(move,right))
-        if(self.possible_move(move,vector_sum(move,up_left))and (not is_same_orientation(eval_vec,up_left))):
-            temp_avalable_moves.append(vector_sum(move,up_left))
-        if(self.possible_move(move,vector_sum(move,up_right))and (not is_same_orientation(eval_vec,up_right))):
-            temp_avalable_moves.append(vector_sum(move,up_right))
-        if(self.possible_move(move,vector_sum(move,down_left))and (not is_same_orientation(eval_vec,down_left))):
-            temp_avalable_moves.append(vector_sum(move,down_left))
-        if(self.possible_move(move,vector_sum(move,down_right))and (not is_same_orientation(eval_vec,down_right))):
-            temp_avalable_moves.append(vector_sum(move,down_right))
-        print(temp_avalable_moves)
-        print(previous_state.moved_pos)
+
+        for dir in directions:
+            if self.possible_move(move, vector_sum(move, dir)) and (not is_same_orientation(eval_vec,dir)):
+                temp_avalable_moves.append(vector_sum(move, dir))
         
         temp_avalable_moves = [m for m in temp_avalable_moves if ((self.evaluate_capture(move,m)[0] or self.evaluate_capture(move,m)[1]) and (m not in previous_state.moved_pos))]
         
@@ -301,6 +287,10 @@ class State:
                     print("First movement")
                     state_copy.moved_pos.append(player_pos)
                     state_copy.player = not self.player
+                elif (self.capture!=no_capture):
+                    print("Invalid Move")
+                    return -1
+                
                 
                 
             return state_copy
