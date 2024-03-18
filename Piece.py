@@ -41,15 +41,15 @@ class Piece(pygame.sprite.Sprite):
         self.rect.center = (128 + 48*self.x, 96 + 48*self.y)        
         return state.move((self.y, self.x), (self.y, self.x), screen, font)
 
-def update_sprite(state,screen, rows, cols):
+def update_sprite(board ,screen, rows, cols):
     pieces = pygame.sprite.Group()
 
     for x in range(cols):
         for y in range(rows):
-            if (state.board[y][x] == white):
+            if (board[y][x] == white):
                 piece = Piece(white, x, y)
                 pieces.add(piece)
-            elif (state.board[y][x] == black): 
+            elif (board[y][x] == black): 
                 piece = Piece(black, x, y)
                 pieces.add(piece)
             else:

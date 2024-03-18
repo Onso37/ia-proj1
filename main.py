@@ -85,6 +85,7 @@ class State:
         self.black_captured = 0
         self.available_moves = [(ROWS//2,COLS//2)]
         self.moved_pos = []
+        self.boards = []
         self.winner = 2 #2 no winner, 0 for black, 1 for white, -1 for no winner
         for y in range(COLS):
             for x in range(ROWS//2):
@@ -330,14 +331,17 @@ class State:
                 state_copy.capture = capture_by_approach
                 state_copy.last_dir = dir
                 state_copy.capture_positions.append(moved_pos)
+                state_copy.boards.append(self.board)
 
                 state_copy.capture_move((x, y), moved_pos)
                 yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
+
             if self.in_bounds(back_x, back_y) and self.board[back_x][back_y] == (not self.player):
                 state_copy = deepcopy(self)
                 state_copy.capture = capture_by_withdrawal
                 state_copy.last_dir = dir
                 state_copy.capture_positions.append(moved_pos)
+                state_copy.boards.append(self.board)
 
                 state_copy.capture_move((x, y), moved_pos)
                 yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
@@ -485,7 +489,7 @@ def execute_player_move(screen, font, state, pieces):
                     state = next_state
                 else:
                     state = temp
-                pieces = update_sprite(state,screen,ROWS,COLS)
+                pieces = update_sprite(state.board,screen,ROWS,COLS)
                 dragging = None
                 return state
             if event.type == pygame.MOUSEMOTION and dragging:
@@ -517,7 +521,7 @@ def main():
         
         # create a surface on screen that has the size of 640 x 480
         screen = pygame.display.set_mode((640,480))
-        pieces=update_sprite(state,screen,ROWS,COLS)
+        pieces=update_sprite(state.board,screen,ROWS,COLS)
         draw_bg(screen)
         pieces.update()
         pieces.draw(screen)
@@ -541,11 +545,20 @@ def main():
         players = (2, 2)
     while running and state.winner == 2:
         if GUI:
+            if (len(state.boards) != 0):
+                for board in state.boards:
+                    draw_bg(screen)
+                    pieces = update_sprite(board, screen, ROWS, COLS)
+                    pieces.update()
+                    pieces.draw(screen)
+                    pygame.display.flip()
+                    pygame_get_enter()
             draw_bg(screen)
-            pieces = update_sprite(state, screen, ROWS, COLS)
+            pieces = update_sprite(state.board, screen, ROWS, COLS)
             pieces.update()
             pieces.draw(screen)
             pygame.display.flip()
+            state.boards = []
         if(not displayed):
             print("Turn:", "White" if state.player else "Black")        
             displayed = True
