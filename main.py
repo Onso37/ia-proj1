@@ -27,7 +27,9 @@ directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 displayed = False
 
 ROWS = 5
-COLS = 5
+COLS = 9
+
+GUI = False
 
 def turn_change():
     global player_turn
@@ -402,7 +404,10 @@ def draw_motif(screen, x, y, size):
     pygame.draw.line(screen, (0, 0, 0), (x, y+size/2), (x+size, y+size/2))
     pygame.draw.line(screen, (0, 0, 0), (x, y), (x+size, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size), (x+size, y))
+
 def announce_winner(winner,screen,font):
+    global GUI
+
     string_winner=""
     if(winner==1):
         string_winner="White wins"
@@ -410,12 +415,17 @@ def announce_winner(winner,screen,font):
         string_winner="Black wins"
     else:
         string_winner="Draw"
-    display_text = font.render(string_winner, True, (0,0,0))
-    textRect = display_text.get_rect()
-    textRect.bottomleft = (0, 480-24)
-    screen.blit(display_text, textRect)
-    pygame.display.flip()
-    pygame_get_enter()
+    if GUI:
+        display_text = font.render(string_winner, True, (0,0,0))
+        textRect = display_text.get_rect()
+        textRect.bottomleft = (0, 480-24)
+        screen.blit(display_text, textRect)
+        pygame.display.flip()
+        pygame_get_enter()
+        return
+    
+    print(string_winner)
+    
 def draw_bg(screen):
     screen.fill((255, 255, 255))
     for x in range(COLS//2):
@@ -423,7 +433,18 @@ def draw_bg(screen):
             draw_motif(screen, 128 + 96*x, 96*(y+1), 96)
 
 def get_pygame_input(screen, font, opts):
+    global GUI
     opts = list(map(lambda num, opt: f"{num}: {opt}", range(1, len(opts)+1), opts))
+
+    print(GUI)
+    if GUI == False:
+        for opt in opts:
+            print(opt)
+        while True:
+            val = int(input())
+            if val >= 1 and val <= len(opts):
+                return val
+    
     for i in range(len(opts)):
         display_text = font.render(opts[len(opts)-i-1], True, (0,0,0))
         textRect = display_text.get_rect()
@@ -466,38 +487,50 @@ def execute_player_move(screen, font, state, pieces):
                     state = temp
                 pieces = update_sprite(state,screen,ROWS,COLS)
                 dragging = None
-                return state, pieces
+                return state
             if event.type == pygame.MOUSEMOTION and dragging:
                 dragging.drag(pygame.mouse.get_pos())
 
-def execute_random_move(screen, font, state, pieces):
+def execute_random_move(state):
     moves = state.get_all_moves()
     move = random.choice(moves)
     move.player = not move.player
-    pieces = update_sprite(move,screen,ROWS,COLS)
-    return move, pieces
+    return move
 
 # define a main function
 def main():
-     
-    state = State()
-    #test = state.get_all_moves()
+    global GUI
 
-    pygame.init()
-    pygame.display.set_caption("Fanorona")
-    font = pygame.font.Font(pygame.font.get_default_font(), 24)
-     
-    # create a surface on screen that has the size of 640 x 480
-    screen = pygame.display.set_mode((640,480))
-    #game = State()
+
+    useGUI = get_pygame_input(None, None, ["With GUI", "Without GUI"])
+    print(useGUI)
+    if (useGUI == 1):
+        GUI = True
+
+    state = State()
+    if GUI:
+        #test = state.get_all_moves()
+
+        pygame.init()
+        pygame.display.set_caption("Fanorona")
+        font = pygame.font.Font(pygame.font.get_default_font(), 24)
+        
+        # create a surface on screen that has the size of 640 x 480
+        screen = pygame.display.set_mode((640,480))
+        pieces=update_sprite(state,screen,ROWS,COLS)
+        draw_bg(screen)
+        pieces.update()
+        pieces.draw(screen)
+        pygame.display.flip()
+    else:
+        screen = None
+        font = None
+        pieces = None
 
     running = True
-    pieces=update_sprite(state,screen,ROWS,COLS)
+    
     global displayed
-    draw_bg(screen)
-    pieces.update()
-    pieces.draw(screen)
-    pygame.display.flip()
+    
     mode=get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs AI"])
     players = None
     if mode == 1:
@@ -507,19 +540,22 @@ def main():
     elif mode == 3:
         players = (2, 2)
     while running and state.winner == 2:
-        draw_bg(screen)
-        pieces = update_sprite(state, screen, ROWS, COLS)
-        pieces.update()
-        pieces.draw(screen)
-        pygame.display.flip()
+        if GUI:
+            draw_bg(screen)
+            pieces = update_sprite(state, screen, ROWS, COLS)
+            pieces.update()
+            pieces.draw(screen)
+            pygame.display.flip()
         if(not displayed):
             print("Turn:", "White" if state.player else "Black")        
             displayed = True
         if players[state.player] == 1:
-            state, pieces = execute_player_move(screen, font, state, pieces)
+            state = execute_player_move(screen, font, state, pieces)
         elif players[state.player] == 2:
-            state, pieces = execute_minimax_move(screen, font, state, pieces)
-            pygame_get_enter()
+            state = execute_minimax_move(state)
+            displayed = False
+            if GUI:
+                pygame_get_enter()
     announce_winner(state.winner,screen,font)
 
 if __name__=="__main__":
