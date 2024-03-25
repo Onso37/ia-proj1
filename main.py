@@ -178,7 +178,7 @@ class State:
             if( self.board[approach[0]][approach[1]] == (not self.player) ):
                 captures[capture_by_approach] = True
         return captures
-            
+        
     def capture_move(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
