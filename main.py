@@ -3,6 +3,8 @@ import pygame
 import numpy
 import time
 from Piece import *
+from AIPlayer import *
+from heuristics import *
 import random
 import functools 
 from minimax import execute_minimax_move
@@ -495,9 +497,9 @@ def execute_player_move(screen, font, state, pieces):
             if event.type == pygame.MOUSEMOTION and dragging:
                 dragging.drag(pygame.mouse.get_pos())
 
-def execute_random_move(state):
+def execute_random_move(state, _):
     moves = state.get_all_moves()
-    move = random.choice(moves)
+    move = random.choice(list(moves))
     move.player = not move.player
     return move
 
@@ -535,14 +537,27 @@ def main():
     
     global displayed
     
-    mode=get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs AI"])
-    players = None
-    if mode == 1:
-        players = (1, 1)
-    elif mode == 2:
-        players = (2, 1)
-    elif mode == 3:
-        players = (2, 2)
+    mode=get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs Human", "AI vs AI"])
+    playerTypes = None
+    players = [None, None]
+    match mode:
+        case 1:
+            playerTypes = (1, 1)
+        case 2:
+            playerTypes = (2, 1)
+        case 3:
+            playerTypes = (1, 2)
+        case 4:
+            playerTypes = (2, 2)
+
+    algos = [execute_random_move, execute_minimax_move]
+    difficulties = [heuristic1]
+    for i in range(2):
+        if playerTypes[i] == 2:
+            algo = get_pygame_input(screen, font, ["Random move", "Minimax"]) - 1
+            difficulty = get_pygame_input(screen, font, ["Simple heuristic"]) - 1
+            players[i] = AIPlayer(algos[algo], difficulties[difficulty])
+
     while running and state.winner == 2:
         if GUI:
             if (len(state.boards) != 0):
@@ -562,10 +577,10 @@ def main():
         if(not displayed):
             print("Turn:", "White" if state.player else "Black")        
             displayed = True
-        if players[state.player] == 1:
+        if playerTypes[state.player] == 1:
             state = execute_player_move(screen, font, state, pieces)
-        elif players[state.player] == 2:
-            state = execute_minimax_move(state)
+        elif playerTypes[state.player] == 2:
+            state = players[state.player].move(state)
             displayed = False
             if GUI:
                 pygame_get_enter()

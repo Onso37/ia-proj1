@@ -49,13 +49,8 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
             return evaluate_func(player, state), state
         return minEval, best_move
 
-def heuristic1(player, state):
-    count_a = numpy.count_nonzero(state.board == player)
-    count_b = numpy.count_nonzero(state.board == (not player))
-    return count_a - count_b
-
-def execute_minimax_move(state):
-    _, move = minimax(state, 2, -math.inf, math.inf, True, state.player, heuristic1)
+def execute_minimax_move(state, evaluate_func):
+    _, move = minimax(state, 2, -math.inf, math.inf, True, state.player, evaluate_func)
     winner = move.check_win()
     move.player = not move.player
     return move
