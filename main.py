@@ -462,7 +462,7 @@ def get_pygame_input(screen, font, opts):
             if event.type == pygame.KEYDOWN:
                 key = pygame.key.name(event.key)
                 if key >= '1' and key <= str(len(opts)):
-                    rect = pygame.rect.Rect(0, 480-24*(len(opts)-1), 640, 24*(len(opts)-1))
+                    rect = pygame.rect.Rect(0, 480-24*(len(opts)), 640, 24*(len(opts)))
                     screen.fill((255,255,255, 255), rect=rect)
                     pygame.display.flip()
                     return int(key)
