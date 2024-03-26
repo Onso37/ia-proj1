@@ -3,6 +3,7 @@ import pygame
 import numpy
 import time
 from Piece import *
+from minimax import *
 from AIPlayer import *
 from heuristics import *
 import random
@@ -410,7 +411,6 @@ def pygame_get_enter():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     return 0
-        
  
 def draw_motif(screen, x, y, size):
     pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(x, y, size, size), width=1)
@@ -564,6 +564,7 @@ def main():
 
     algos = [execute_random_move, execute_minimax_move]
     difficulties = [heuristic1, heuristic2]
+    algo = -1
     for i in range(2):
         if playerTypes[i] == 2:
             algo = get_pygame_input(screen, font, ["Random move", "Minimax"]) - 1
@@ -593,6 +594,8 @@ def main():
             state = execute_player_move(screen, font, state, pieces)
         elif playerTypes[state.player] == 2:
             state = players[state.player].move(state)
+            if algo == 1:
+                show_statistics(screen, font)
             displayed = False
             if GUI:
                 pygame_get_enter()
