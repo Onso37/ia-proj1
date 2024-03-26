@@ -2,7 +2,7 @@ import pygame
 white = 1
 black = 0
 space = 2
-
+view = 3
 class Piece(pygame.sprite.Sprite):
 
     
@@ -24,6 +24,9 @@ class Piece(pygame.sprite.Sprite):
                 pygame.draw.circle(self.image, (0,0,0), (18, 18), 18, width=2)
             else:
                 pygame.draw.circle(self.image, (0,0,0), (18, 18), 18)
+        else:
+            if self.isWhite == view:
+                pygame.draw.circle(self.image, (11,255,102), (18, 18), 18)
 
     def drag(self, pos):
         self.rect.center = pos
@@ -43,7 +46,6 @@ class Piece(pygame.sprite.Sprite):
 
 def update_sprite(state,screen):
     pieces = pygame.sprite.Group()
-
     for x in range(9):
         for y in range(5):
             if (state.board[y][x] == white):
@@ -51,6 +53,11 @@ def update_sprite(state,screen):
                 pieces.add(piece)
             elif (state.board[y][x] == black): 
                 piece = Piece(black, x, y)
+                pieces.add(piece)
+            elif((y,x) in state.available_moves):
+                ##showing the moves for consecutive captures
+                piece = Piece(view,x,y,False)
+                print((y,x) in state.available_moves)
                 pieces.add(piece)
             else:
                 piece = Piece(space, x, y, False)

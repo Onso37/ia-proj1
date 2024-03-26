@@ -54,6 +54,7 @@ def heuristic1(player, state):
     count_b = numpy.count_nonzero(state.board == (not player))
     return count_a - count_b
 
+
 def execute_minimax_move(screen, font, state, pieces):
     _, move = minimax(state, 2, -math.inf, math.inf, True, state.player, heuristic1)
     winner = move.check_win()
