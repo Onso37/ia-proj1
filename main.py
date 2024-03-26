@@ -85,6 +85,7 @@ class State:
         self.black_pieces = (ROWS * COLS)//2
         self.white_captured = 0
         self.black_captured = 0
+        self.non_captures = 0
         self.available_moves = [(ROWS//2,COLS//2)]
         self.moved_pos = []
         self.boards = []
@@ -334,6 +335,7 @@ class State:
                 state_copy.last_dir = dir
                 state_copy.capture_positions.append(moved_pos)
                 state_copy.boards.append(self.board)
+                state_copy.non_captures=0
 
                 state_copy.capture_move((x, y), moved_pos)
                 yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
@@ -344,6 +346,7 @@ class State:
                 state_copy.last_dir = dir
                 state_copy.capture_positions.append(moved_pos)
                 state_copy.boards.append(self.board)
+                state_copy.non_captures=0
 
                 state_copy.capture_move((x, y), moved_pos)
                 yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
@@ -358,6 +361,7 @@ class State:
             state_copy = deepcopy(self)
             state_copy.capture = no_capture
             state_copy.board[x][y] = space
+            state_copy.non_captures+=1
             state_copy.board[moved_pos[0]][moved_pos[1]] = self.player
             yield state_copy
 
@@ -390,6 +394,8 @@ class State:
             self.winner = black
         elif self.black_pieces == 0:
             self.winner = white
+        elif self.non_captures >= 10:
+            self.winner = -1
         else:
             self.winner = 2
         return self.winner
