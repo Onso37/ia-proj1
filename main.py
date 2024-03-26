@@ -537,7 +537,11 @@ def main():
     
     global displayed
     
-    mode=get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs Human", "AI vs AI"])
+    if GUI:
+        mode = get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs Human", "AI vs AI"])
+    else:
+        mode = 4
+    
     playerTypes = None
     players = [None, None]
     match mode:
