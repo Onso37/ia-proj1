@@ -12,9 +12,13 @@ down_right = (1,1)
 directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 
 def heuristic1(player, state):
-    count_a = numpy.count_nonzero(state.board == player)
-    count_b = numpy.count_nonzero(state.board == (not player))
-    return count_a - count_b
+    if player == 1:
+        return state.white_pieces - state.black_pieces
+    else:
+        return state.black_pieces - state.white_pieces
+    #count_a = numpy.count_nonzero(state.board == player)
+    #count_b = numpy.count_nonzero(state.board == (not player))
+    #return count_a - count_b
 
 def in_bounds(position):
     x, y = position

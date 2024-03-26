@@ -379,11 +379,11 @@ class State:
         counter = 0
         for move in self.get_available_captures():
             counter += 1
-            yield move
-
+            yield deepcopy(move)
+            
         if counter == 0:
             for move in self.get_available_non_captures():
-                yield move
+                yield deepcopy(move)
 
     def check_win(self):
         if self.white_pieces == 0:
@@ -564,7 +564,7 @@ def main():
 
     while running and state.winner == 2:
         if GUI:
-            if (len(state.boards) != 0):
+            if (len(state.boards) > 1):
                 for board in state.boards:
                     draw_bg(screen)
                     pieces = update_sprite(board, screen, ROWS, COLS)

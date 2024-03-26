@@ -14,6 +14,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
         maxEval = -math.inf
         best_move = None
         for move in moves:
+            move.player = not move.player
             counter += 1
             eval, _ = minimax(move, depth-1, alpha, beta, False, player, evaluate_func)
             if (eval >= maxEval):
@@ -24,6 +25,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
             alpha = max(alpha, maxEval)
 
             if beta <= alpha:
+                print("cut")
                 break
         
         if counter == 0:
@@ -33,6 +35,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
         minEval = math.inf
         best_move = None
         for move in moves:
+            move.player = not move.player
             counter += 1
             eval, _ = minimax(move, depth-1, alpha, beta, True, player, evaluate_func)
             if (eval <= minEval):
@@ -50,7 +53,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
         return minEval, best_move
 
 def execute_minimax_move(state, evaluate_func):
-    _, move = minimax(state, 2, -math.inf, math.inf, True, state.player, evaluate_func)
+    _, move = minimax(state, 1, -math.inf, math.inf, True, state.player, evaluate_func)
     winner = move.check_win()
-    move.player = not move.player
+    #move.player = not move.player
     return move
