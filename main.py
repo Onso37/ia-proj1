@@ -380,6 +380,8 @@ class State:
                     yield from self.try_non_captures(x, y)
     
     def get_all_moves(self):
+        if self.check_win() != 2:
+            yield from []
         counter = 0
         for move in self.get_available_captures():
             counter += 1
