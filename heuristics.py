@@ -30,9 +30,11 @@ def generate_neighbors(position):
         yield [temp, (temp[0] + dir[0], temp[1] + dir[1])]
 
 def heuristic2(player, state):
-    for x in ROWS:
-        for y in COLS:
+    score = 0
+
+    for x in range(1, ROWS, 2):
+        for y in range(1, COLS, 2):
             if state.board[x][y] == player:
-                for neighbors in generate_neighbors((x, y)):
-                    if in_bounds(neighbors[1]):
-                        return 1
+                score += 2
+    
+    return heuristic1(player, state) + score

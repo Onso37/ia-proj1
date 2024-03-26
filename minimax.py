@@ -53,7 +53,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
         return minEval, best_move
 
 def execute_minimax_move(state, evaluate_func):
-    _, move = minimax(state, 1, -math.inf, math.inf, True, state.player, evaluate_func)
+    _, move = minimax(state, 3, -math.inf, math.inf, True, state.player, evaluate_func)
     winner = move.check_win()
     #move.player = not move.player
     return move

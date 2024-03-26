@@ -380,7 +380,7 @@ class State:
         for move in self.get_available_captures():
             counter += 1
             yield deepcopy(move)
-            
+
         if counter == 0:
             for move in self.get_available_non_captures():
                 yield deepcopy(move)
@@ -555,11 +555,11 @@ def main():
             playerTypes = (2, 2)
 
     algos = [execute_random_move, execute_minimax_move]
-    difficulties = [heuristic1]
+    difficulties = [heuristic1, heuristic2]
     for i in range(2):
         if playerTypes[i] == 2:
             algo = get_pygame_input(screen, font, ["Random move", "Minimax"]) - 1
-            difficulty = get_pygame_input(screen, font, ["Simple heuristic"]) - 1
+            difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions"]) - 1
             players[i] = AIPlayer(algos[algo], difficulties[difficulty])
 
     while running and state.winner == 2:
