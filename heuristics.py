@@ -22,7 +22,7 @@ def heuristic1(player, state):
 
 def in_bounds(position):
     x, y = position
-    return x < 0 or x >= ROWS or y < 0 or y >= COLS
+    return not (x < 0 or x >= ROWS or y < 0 or y >= COLS)
 
 def generate_neighbors(position):
     for dir in directions:
@@ -35,6 +35,26 @@ def heuristic2(player, state):
     for x in range(1, ROWS, 2):
         for y in range(1, COLS, 2):
             if state.board[x][y] == player:
-                score += 2
+                score += 1
     
-    return heuristic1(player, state) + score
+    return 5*heuristic1(player, state) + score
+
+def dfs(board, player, x, y):
+    board[x][y] = 2
+    for i in range(4):
+        new_x = x+directions[i][0]
+        new_y = y+directions[i][1]
+        if in_bounds((new_x, new_y)) and board[new_x][new_y] == player:
+            dfs(board, player, x+directions[i][0], y+directions[i][1])
+        
+
+def heuristic3(player, state):
+    chunks = 0
+    board = state.board.copy()
+    for x in range(ROWS):
+        for y in range(COLS):
+            if (board[x][y] == player):
+                dfs(board, player, x, y)
+                chunks += 1
+
+    return heuristic2(player, state) - 0.5*chunks
