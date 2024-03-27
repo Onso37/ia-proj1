@@ -72,7 +72,7 @@ def is_same_orientation(vector1, vector2):
 
 class State:
     def __init__(self):
-        self.board = numpy.zeros((5,9))
+        self.board = numpy.zeros((ROWS,COLS))
         self.player = 1
         self.capture = no_capture
         self.last_dir = None
@@ -84,7 +84,7 @@ class State:
         self.available_moves = [(2,4)]
         self.moved_pos = []
         self.winner = 2 #2 no winner, 0 for black, 1 for white, -1 for no winner
-        for y in range(9):
+        for y in range(COLS):
             for x in range(2):
                 self.board[x][y] = black
         for y in range(4):
@@ -92,7 +92,7 @@ class State:
                 self.board[2][y] = black
             else:
                 self.board[2][y] = white
-        for y in range(5, 9):
+        for y in range(ROWS, COLS):
             if(y%2==0):
                 self.board[2][y] = white
             else:
@@ -131,7 +131,7 @@ class State:
         return False
     
     def possible_moves(self,player_pos,move,previous_state=None):
-    
+        
         temp_avalable_moves = list()
         eval_vec=(move[0]-player_pos[0],move[1]-player_pos[1])
         
@@ -226,7 +226,37 @@ class State:
             return move
         
         return -1
-    
+    def check_neighbour(self,pos,color):
+        x,y = pos
+        for dir in directions:
+            x1,y1 = dir
+            if((x+x1) >= ROWS or (y+y1)>COLS): 
+                continue
+            if(self.board[x+x1][y+y1] == color):
+
+                print(dir)
+                print(x,y)
+                print(x+x1,y+y1)
+                return True
+        return False
+
+    def initial_moves_only_captures(self):
+        temp=[]
+        for x in range(ROWS):
+            for y in range(COLS):
+                if(self.board[x][y] == space and self.check_neighbour((x,y),self.player) and self.check_neighbour((x,y),not self.player)):
+                    temp.append((x,y))
+        return temp
+    def initial_moves(self):
+        temp=[]
+        for x in range(ROWS):
+            for y in range(COLS):
+                if(self.board[x][y] == space and self.check_neighbour((x,y),self.player) ):
+                    temp.append((x,y))
+        return temp
+                    
+            
+
         
     def move(self,player_pos,move,screen,font):
         global displayed
@@ -271,6 +301,7 @@ class State:
                     print("No more moves for succesive capture")
                     state_copy.capture = no_capture
                     state_copy.player = not self.player
+                    ##state_copy.available_moves=state_copy.initial_moves()
                     state_copy.moved_pos = []
             else:
                 if(state_copy.available_moves == [] and (self.capture != no_capture)):
@@ -280,7 +311,6 @@ class State:
                     state_copy.player = not self.player
                     
                 elif (self.available_moves == [] and (self.capture == no_capture) and (state_copy.available_moves != [] or state_copy.available_moves==[])):
-                    print("First movement")
                     state_copy.moved_pos.append(player_pos)
                     state_copy.player = not self.player
                 elif (self.capture!=no_capture):
