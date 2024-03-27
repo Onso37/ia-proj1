@@ -55,7 +55,7 @@ def update_sprite(board ,screen, rows, cols,state = None):
             elif (board[y][x] == black): 
                 piece = Piece(black, x, y)
                 pieces.add(piece)
-            elif((y,x) in state.available_moves):
+            elif(state != None and (y,x) in state.available_moves):
                 ##showing the moves for consecutive captures
                 piece = Piece(view,x,y,False)
                 pieces.add(piece)
