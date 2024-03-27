@@ -226,34 +226,6 @@ class State:
             return move
         
         return -1
-    def check_neighbour(self,pos,color):
-        x,y = pos
-        for dir in directions:
-            x1,y1 = dir
-            if((x+x1) >= ROWS or (y+y1)>COLS): 
-                continue
-            if(self.board[x+x1][y+y1] == color):
-
-                print(dir)
-                print(x,y)
-                print(x+x1,y+y1)
-                return True
-        return False
-
-    def initial_moves_only_captures(self):
-        temp=[]
-        for x in range(ROWS):
-            for y in range(COLS):
-                if(self.board[x][y] == space and self.check_neighbour((x,y),self.player) and self.check_neighbour((x,y),not self.player)):
-                    temp.append((x,y))
-        return temp
-    def initial_moves(self):
-        temp=[]
-        for x in range(ROWS):
-            for y in range(COLS):
-                if(self.board[x][y] == space and self.check_neighbour((x,y),self.player) ):
-                    temp.append((x,y))
-        return temp
                     
             
 
@@ -300,11 +272,13 @@ class State:
                 else:
                     print("No more moves for succesive capture")
                     state_copy.capture = no_capture
-                    state_copy.player = not self.player
-                    ##state_copy.available_moves=state_copy.initial_moves()
+                    state_copy.player = not self.player 
                     state_copy.moved_pos = []
             else:
-                if(state_copy.available_moves == [] and (self.capture != no_capture)):
+                if(list(self.get_available_captures()) != []):
+                    print("Mandatory captures existent!")
+                    return -1
+                elif(state_copy.available_moves == [] and (self.capture != no_capture)):
                     if(self.available_moves!=[]):
                         print("Invalid Move")
                         return -1
@@ -316,6 +290,7 @@ class State:
                 elif (self.capture!=no_capture):
                     print("Invalid Move")
                     return -1
+                
                 
                 
                 
