@@ -3,6 +3,9 @@ import pygame
 import numpy
 import time
 from Piece import *
+from minimax import *
+from AIPlayer import *
+from heuristics import *
 import random
 import functools 
 from minimax import execute_minimax_move
@@ -28,6 +31,8 @@ displayed = False
 
 ROWS = 5
 COLS = 9
+
+GUI = False
 
 def turn_change():
     global player_turn
@@ -72,36 +77,38 @@ def is_same_orientation(vector1, vector2):
 
 class State:
     def __init__(self):
-        self.board = numpy.zeros((5,9))
+        self.board = numpy.zeros((ROWS,COLS))
         self.player = 1
         self.capture = no_capture
         self.last_dir = None
         self.capture_positions = []
-        self.white_pieces = 22
-        self.black_pieces = 22
+        self.white_pieces = (ROWS * COLS)//2
+        self.black_pieces = (ROWS * COLS)//2
         self.white_captured = 0
         self.black_captured = 0
-        self.available_moves = [(2,4)]
+        self.non_captures = 0
+        self.available_moves = [(ROWS//2,COLS//2)]
         self.moved_pos = []
+        self.boards = []
         self.winner = 2 #2 no winner, 0 for black, 1 for white, -1 for no winner
-        for y in range(9):
-            for x in range(2):
+        for y in range(COLS):
+            for x in range(ROWS//2):
                 self.board[x][y] = black
-        for y in range(4):
+        for y in range(COLS//2):
             if(y%2==0):
-                self.board[2][y] = black
+                self.board[ROWS//2][y] = black
             else:
-                self.board[2][y] = white
-        for y in range(5, 9):
+                self.board[ROWS//2][y] = white
+        for y in range((COLS//2) + 1, COLS):
             if(y%2==0):
-                self.board[2][y] = white
+                self.board[ROWS//2][y] = white
             else:
-                self.board[2][y] = black
+                self.board[ROWS//2][y] = black
         
-        for y in range(9):
-            for x in range(3, 5):
+        for y in range(COLS):
+            for x in range((ROWS//2)+1, ROWS):
                 self.board[x][y] = white
-        self.board[2][4] = space
+        self.board[ROWS//2][COLS//2] = space
     def has_diagonal(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
@@ -195,7 +202,7 @@ class State:
         self.board[xi][yi] = space
         if(self.capture == capture_by_approach):
             temp = vector_sum(move,vector)
-            while(temp[0]>=0 and temp[0]<5 and temp[1]>=0 and temp[1]<9):
+            while(temp[0]>=0 and temp[0]<ROWS and temp[1]>=0 and temp[1]<COLS):
                 if(self.board[temp[0]][temp[1]] != self.player and self.board[temp[0]][temp[1]] != space):
                     if(self.player==white):
                         self.black_captured += 1
@@ -211,7 +218,7 @@ class State:
         elif(self.capture == capture_by_withdrawal):
             vector = (-vector[0],-vector[1])
             temp = vector_sum(player_pos,vector)
-            while(temp[0]>=0 and temp[0]<5 and temp[1]>=0 and temp[1]<9):
+            while(temp[0]>=0 and temp[0]<ROWS and temp[1]>=0 and temp[1]<COLS):
                 if(self.board[temp[0]][temp[1]] != self.player and self.board[temp[0]][temp[1]] != space):
                     if(self.player==white):
                         self.black_captured += 1
@@ -324,14 +331,19 @@ class State:
                 state_copy.capture = capture_by_approach
                 state_copy.last_dir = dir
                 state_copy.capture_positions.append(moved_pos)
+                state_copy.boards.append(self.board)
+                state_copy.non_captures=0
 
                 state_copy.capture_move((x, y), moved_pos)
                 yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
+
             if self.in_bounds(back_x, back_y) and self.board[back_x][back_y] == (not self.player):
                 state_copy = deepcopy(self)
                 state_copy.capture = capture_by_withdrawal
                 state_copy.last_dir = dir
                 state_copy.capture_positions.append(moved_pos)
+                state_copy.boards.append(self.board)
+                state_copy.non_captures=0
 
                 state_copy.capture_move((x, y), moved_pos)
                 yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
@@ -346,6 +358,7 @@ class State:
             state_copy = deepcopy(self)
             state_copy.capture = no_capture
             state_copy.board[x][y] = space
+            state_copy.non_captures+=1
             state_copy.board[moved_pos[0]][moved_pos[1]] = self.player
             yield state_copy
 
@@ -364,20 +377,24 @@ class State:
                     yield from self.try_non_captures(x, y)
     
     def get_all_moves(self):
+        if self.check_win() != 2:
+            yield from []
         counter = 0
         for move in self.get_available_captures():
             counter += 1
-            yield move
+            yield deepcopy(move)
 
         if counter == 0:
             for move in self.get_available_non_captures():
-                yield move
+                yield deepcopy(move)
 
     def check_win(self):
         if self.white_pieces == 0:
             self.winner = black
         elif self.black_pieces == 0:
             self.winner = white
+        elif self.non_captures >= 10:
+            self.winner = -1
         else:
             self.winner = 2
         return self.winner
@@ -390,7 +407,6 @@ def pygame_get_enter():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     return 0
-        
  
 def draw_motif(screen, x, y, size):
     pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(x, y, size, size), width=1)
@@ -398,7 +414,10 @@ def draw_motif(screen, x, y, size):
     pygame.draw.line(screen, (0, 0, 0), (x, y+size/2), (x+size, y+size/2))
     pygame.draw.line(screen, (0, 0, 0), (x, y), (x+size, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size), (x+size, y))
+
 def announce_winner(winner,screen,font):
+    global GUI
+
     string_winner=""
     if(winner==1):
         string_winner="White wins"
@@ -406,20 +425,36 @@ def announce_winner(winner,screen,font):
         string_winner="Black wins"
     else:
         string_winner="Draw"
-    display_text = font.render(string_winner, True, (0,0,0))
-    textRect = display_text.get_rect()
-    textRect.bottomleft = (0, 480-24)
-    screen.blit(display_text, textRect)
-    pygame.display.flip()
-    pygame_get_enter()
+    if GUI:
+        display_text = font.render(string_winner, True, (0,0,0))
+        textRect = display_text.get_rect()
+        textRect.bottomleft = (0, 480-24)
+        screen.blit(display_text, textRect)
+        pygame.display.flip()
+        pygame_get_enter()
+        return
+    
+    print(string_winner)
+    
 def draw_bg(screen):
     screen.fill((255, 255, 255))
-    for x in range(4):
-        for y in range(2):
+    for x in range(COLS//2):
+        for y in range(ROWS//2):
             draw_motif(screen, 128 + 96*x, 96*(y+1), 96)
 
 def get_pygame_input(screen, font, opts):
+    global GUI
     opts = list(map(lambda num, opt: f"{num}: {opt}", range(1, len(opts)+1), opts))
+
+    print(GUI)
+    if GUI == False:
+        for opt in opts:
+            print(opt)
+        while True:
+            val = int(input())
+            if val >= 1 and val <= len(opts):
+                return val
+    
     for i in range(len(opts)):
         display_text = font.render(opts[len(opts)-i-1], True, (0,0,0))
         textRect = display_text.get_rect()
@@ -431,7 +466,7 @@ def get_pygame_input(screen, font, opts):
             if event.type == pygame.KEYDOWN:
                 key = pygame.key.name(event.key)
                 if key >= '1' and key <= str(len(opts)):
-                    rect = pygame.rect.Rect(0, 480-24*(len(opts)-1), 640, 24*(len(opts)-1))
+                    rect = pygame.rect.Rect(0, 480-24*(len(opts)), 640, 24*(len(opts)))
                     screen.fill((255,255,255, 255), rect=rect)
                     pygame.display.flip()
                     return int(key)
@@ -460,61 +495,106 @@ def execute_player_move(screen, font, state, pieces):
                     state = next_state
                 else:
                     state = temp
-                pieces = update_sprite(state,screen)
+                pieces = update_sprite(state.board,screen,ROWS,COLS)
                 dragging = None
-                return state, pieces
+                return state
             if event.type == pygame.MOUSEMOTION and dragging:
                 dragging.drag(pygame.mouse.get_pos())
 
-def execute_random_move(screen, font, state, pieces):
+def execute_random_move(state, _):
     moves = state.get_all_moves()
-    move = random.choice(moves)
+    move = random.choice(list(moves))
     move.player = not move.player
-    pieces = update_sprite(move,screen)
-    return move, pieces
+    return move
 
 # define a main function
 def main():
-     
+    global GUI
+
+
+    useGUI = get_pygame_input(None, None, ["With GUI", "Without GUI"])
+    print(useGUI)
+    if (useGUI == 1):
+        GUI = True
+
     state = State()
-    #test = state.get_all_moves()
+    if GUI:
+        #test = state.get_all_moves()
 
-    pygame.init()
-    pygame.display.set_caption("Fanorona")
-    font = pygame.font.Font(pygame.font.get_default_font(), 24)
-     
-    # create a surface on screen that has the size of 640 x 480
-    screen = pygame.display.set_mode((640,480))
-    #game = State()
-
-    running = True
-    pieces=update_sprite(state,screen)
-    global displayed
-    draw_bg(screen)
-    pieces.update()
-    pieces.draw(screen)
-    pygame.display.flip()
-    mode=get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs AI"])
-    players = None
-    if mode == 1:
-        players = (1, 1)
-    elif mode == 2:
-        players = (2, 1)
-    elif mode == 3:
-        players = (2, 2)
-    while running and state.winner == 2:
+        pygame.init()
+        pygame.display.set_caption("Fanorona")
+        font = pygame.font.Font(pygame.font.get_default_font(), 24)
+        
+        # create a surface on screen that has the size of 640 x 480
+        screen = pygame.display.set_mode((640,480))
+        pieces=update_sprite(state.board,screen,ROWS,COLS)
         draw_bg(screen)
         pieces.update()
         pieces.draw(screen)
         pygame.display.flip()
+    else:
+        screen = None
+        font = None
+        pieces = None
+
+    running = True
+    
+    global displayed
+    
+    if GUI:
+        mode = get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs Human", "AI vs AI"])
+    else:
+        mode = 4
+    
+    playerTypes = None
+    players = [None, None]
+    match mode:
+        case 1:
+            playerTypes = (1, 1)
+        case 2:
+            playerTypes = (2, 1)
+        case 3:
+            playerTypes = (1, 2)
+        case 4:
+            playerTypes = (2, 2)
+
+    algos = [execute_random_move, execute_minimax_move]
+    difficulties = [heuristic1, heuristic2, heuristic3]
+    algo = -1
+    for i in range(2):
+        if playerTypes[i] == 2:
+            algo = get_pygame_input(screen, font, ["Random move", "Minimax"]) - 1
+            difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks"]) - 1
+            players[i] = AIPlayer(algos[algo], difficulties[difficulty])
+
+    while running and state.winner == 2:
+        if GUI:
+            if (len(state.boards) > 1):
+                for board in state.boards:
+                    draw_bg(screen)
+                    pieces = update_sprite(board, screen, ROWS, COLS)
+                    pieces.update()
+                    pieces.draw(screen)
+                    pygame.display.flip()
+                    pygame_get_enter()
+            draw_bg(screen)
+            pieces = update_sprite(state.board, screen, ROWS, COLS)
+            pieces.update()
+            pieces.draw(screen)
+            pygame.display.flip()
+            state.boards = []
         if(not displayed):
             print("Turn:", "White" if state.player else "Black")        
             displayed = True
-        if players[state.player] == 1:
-            state, pieces = execute_player_move(screen, font, state, pieces)
-        elif players[state.player] == 2:
-            state, pieces = execute_minimax_move(screen, font, state, pieces)
-            pygame_get_enter()
+        if playerTypes[state.player] == 1:
+            state = execute_player_move(screen, font, state, pieces)
+        elif playerTypes[state.player] == 2:
+            state = players[state.player].move(state)
+            if algo == 1:
+                show_statistics(screen, font)
+            displayed = False
+            if GUI:
+                pygame_get_enter()
     announce_winner(state.winner,screen,font)
 
 if __name__=="__main__":

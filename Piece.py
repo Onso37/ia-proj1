@@ -44,20 +44,20 @@ class Piece(pygame.sprite.Sprite):
         self.rect.center = (128 + 48*self.x, 96 + 48*self.y)        
         return state.move((self.y, self.x), (self.y, self.x), screen, font)
 
-def update_sprite(state,screen):
+def update_sprite(board ,screen, rows, cols,state):
     pieces = pygame.sprite.Group()
-    for x in range(9):
-        for y in range(5):
-            if (state.board[y][x] == white):
+
+    for x in range(cols):
+        for y in range(rows):
+            if (board[y][x] == white):
                 piece = Piece(white, x, y)
                 pieces.add(piece)
-            elif (state.board[y][x] == black): 
+            elif (board[y][x] == black): 
                 piece = Piece(black, x, y)
                 pieces.add(piece)
             elif((y,x) in state.available_moves):
                 ##showing the moves for consecutive captures
                 piece = Piece(view,x,y,False)
-                print((y,x) in state.available_moves)
                 pieces.add(piece)
             else:
                 piece = Piece(space, x, y, False)
