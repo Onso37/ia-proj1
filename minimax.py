@@ -1,10 +1,16 @@
 import math
 import random
+import time
+import pygame
 import numpy
 from Piece import update_sprite
 import collections
 
+cuts = 0
+totalT = 0.0
+
 def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
+    global cuts
     if depth == 0:
         return evaluate_func(player, state), state
     
@@ -14,6 +20,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
         maxEval = -math.inf
         best_move = None
         for move in moves:
+            move.player = not move.player
             counter += 1
             eval, _ = minimax(move, depth-1, alpha, beta, False, player, evaluate_func)
             if (eval >= maxEval):
@@ -24,6 +31,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
             alpha = max(alpha, maxEval)
 
             if beta <= alpha:
+                cuts += 1
                 break
         
         if counter == 0:
@@ -33,6 +41,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
         minEval = math.inf
         best_move = None
         for move in moves:
+            move.player = not move.player
             counter += 1
             eval, _ = minimax(move, depth-1, alpha, beta, True, player, evaluate_func)
             if (eval <= minEval):
@@ -43,21 +52,27 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
             beta = min(beta, minEval)
 
             if beta <= alpha:
+                cuts += 1
                 break
 
         if counter == 0:
             return evaluate_func(player, state), state
         return minEval, best_move
 
-def heuristic1(player, state):
-    count_a = numpy.count_nonzero(state.board == player)
-    count_b = numpy.count_nonzero(state.board == (not player))
-    return count_a - count_b
+def show_statistics(screen, font):
+    display_text = font.render(f"{cuts} A-B cuts, {totalT} s", True, (0,0,0))
+    textRect = display_text.get_rect()
+    textRect.topleft = (0, 0)
+    screen.blit(display_text, textRect)
+    pygame.display.flip()
 
-
-def execute_minimax_move(screen, font, state, pieces):
-    _, move = minimax(state, 2, -math.inf, math.inf, True, state.player, heuristic1)
-    winner = move.check_win()
-    move.player = not move.player
-    pieces = update_sprite(move, screen)
-    return move, pieces
+def execute_minimax_move(state, evaluate_func):
+    global cuts, totalT
+    cuts = 0
+    startT = time.time()
+    _, move = minimax(state, 3, -math.inf, math.inf, True, state.player, evaluate_func)
+    endT = time.time()
+    totalT = endT-startT
+    move.check_win()
+    #move.player = not move.player
+    return move
