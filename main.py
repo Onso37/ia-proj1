@@ -495,7 +495,7 @@ def execute_player_move(screen, font, state, pieces):
                     state = next_state
                 else:
                     state = temp
-                pieces = update_sprite(state.board,screen,ROWS,COLS)
+                pieces = update_sprite(state.board,screen,ROWS,COLS,state)
                 dragging = None
                 return state
             if event.type == pygame.MOUSEMOTION and dragging:
@@ -527,7 +527,7 @@ def main():
         
         # create a surface on screen that has the size of 640 x 480
         screen = pygame.display.set_mode((640,480))
-        pieces=update_sprite(state.board,screen,ROWS,COLS)
+        pieces=update_sprite(state.board,screen,ROWS,COLS,state)
         draw_bg(screen)
         pieces.update()
         pieces.draw(screen)
@@ -578,7 +578,7 @@ def main():
                     pygame.display.flip()
                     pygame_get_enter()
             draw_bg(screen)
-            pieces = update_sprite(state.board, screen, ROWS, COLS)
+            pieces = update_sprite(state.board, screen, ROWS, COLS,state)
             pieces.update()
             pieces.draw(screen)
             pygame.display.flip()
