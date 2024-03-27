@@ -36,6 +36,8 @@ def heuristic2(player, state):
         for y in range(1, COLS, 2):
             if state.board[x][y] == player:
                 score += 1
+            elif state.board[x][y] == (not player):
+                score -= 1
     
     return 5*heuristic1(player, state) + score
 
