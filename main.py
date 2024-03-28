@@ -4,6 +4,7 @@ import numpy
 import time
 from Piece import *
 from minimax import *
+from mcts import execute_mcts_move
 from AIPlayer import *
 from heuristics import *
 import random
@@ -317,6 +318,7 @@ class State:
             self.capture_positions = [(x, y)]
         else:
             #states.append(self)
+            self.check_win()
             yield self
         
         for dir in self.possible_moves_2(x, y):
@@ -364,6 +366,7 @@ class State:
             state_copy.board[x][y] = space
             state_copy.non_captures+=1
             state_copy.board[moved_pos[0]][moved_pos[1]] = self.player
+            state_copy.check_win()
             yield state_copy
 
 
@@ -562,12 +565,12 @@ def main():
         case 4:
             playerTypes = (2, 2)
 
-    algos = [execute_random_move, execute_minimax_move]
+    algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
     difficulties = [heuristic1, heuristic2, heuristic3]
     algo = -1
     for i in range(2):
         if playerTypes[i] == 2:
-            algo = get_pygame_input(screen, font, ["Random move", "Minimax"]) - 1
+            algo = get_pygame_input(screen, font, ["Random move", "Minimax", "Monte Carlo Tree Search"]) - 1
             difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks"]) - 1
             players[i] = AIPlayer(algos[algo], difficulties[difficulty])
 

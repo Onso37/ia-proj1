@@ -32,12 +32,13 @@ def generate_neighbors(position):
 def heuristic2(player, state):
     score = 0
 
-    for x in range(1, ROWS, 2):
-        for y in range(1, COLS, 2):
-            if state.board[x][y] == player:
-                score += 1
-            elif state.board[x][y] == (not player):
-                score -= 1
+    for x in range(1, ROWS-1):
+        for y in range(1, COLS-1):
+            if x%2 == x%2:
+                if state.board[x][y] == player:
+                    score += 1
+                elif state.board[x][y] == (not player):
+                    score -= 1
     
     return 5*heuristic1(player, state) + score
 
