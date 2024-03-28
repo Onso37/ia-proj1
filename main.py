@@ -588,6 +588,8 @@ def main():
                         pieces = update_sprite(board, screen, ROWS, COLS)
                         pieces.update()
                         pieces.draw(screen)
+                        if algo == 1 and GUI:
+                            show_statistics(screen, font)
                         pygame.display.flip()
                         pygame_get_enter()
                 draw_bg(screen)
@@ -603,8 +605,6 @@ def main():
                 state = execute_player_move(screen, font, state, pieces)
             elif playerTypes[state.player] == 2:
                 state = players[state.player].move(state)
-                if algo == 1 and GUI:
-                    show_statistics(screen, font)
                 displayed = False
                 if GUI:
                     pygame_get_enter()

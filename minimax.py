@@ -70,7 +70,7 @@ def execute_minimax_move(state, evaluate_func):
     global cuts, totalT
     cuts = 0
     startT = time.time()
-    _, move = minimax(state, 3, -math.inf, math.inf, True, state.player, evaluate_func)
+    _, move = minimax(state, 4, -math.inf, math.inf, True, state.player, evaluate_func)
     endT = time.time()
     totalT = endT-startT
     move.check_win()
