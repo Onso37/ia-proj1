@@ -34,28 +34,6 @@ COLS = 9
 
 GUI = False
 
-def turn_change():
-    global player_turn
-    player_turn = not player_turn
-    
-def manage_gamestate(self_piece,enemy_piece):
-    global displayed
-    if(player_turn == white and self_piece.isWhite):
-        if(enemy_piece.isWhite and not enemy_piece.isWhite == space):
-            print("Invalid move")
-            return -1
-        turn_change()
-        displayed = False
-    elif (player_turn==black and not self_piece.isWhite):
-        if(not enemy_piece.isWhite and not enemy_piece.isWhite == space):
-            print("Invalid move")
-            return -1
-        turn_change()
-        displayed = False
-    else:
-        print("Not your turn")
-        return -1
-    return 0
 def is_even(x):
     return x%2==0
 def is_diagonal(x1,y1,x2,y2):
@@ -82,7 +60,7 @@ class State:
         self.capture = no_capture
         self.last_dir = None
         self.capture_positions = []
-        self.non_capture_positions = []
+        self.non_capture_position = (0,0)
         self.white_pieces = (ROWS * COLS)//2
         self.black_pieces = (ROWS * COLS)//2
         self.white_captured = 0
@@ -268,6 +246,18 @@ class State:
                 if(self.board[x][y]==space and self.check_neighbour((x,y),self.player)):
                     temp.append((x,y))
         return temp
+    def update_initial_moves(self):
+        temp = list(self.get_available_captures())
+        temp2 = list(self.get_available_non_captures())
+        temp_captures= set([x.capture_positions[1] for x in temp if len(x.capture_positions)==2])
+        temp_non_captures = set([x.non_capture_position for x in temp2])
+        print(temp_captures)
+        print(temp_non_captures)
+        if(len(temp)!= 0):
+            self.available_moves = list(temp_captures) #state_copy.initial_moves_only_captures()
+        else:
+            print("here")
+            self.available_moves = list(temp_non_captures)
         
     def move(self,player_pos,move,screen,font):
         global displayed
@@ -308,22 +298,12 @@ class State:
                     else:
                         state_copy.moved_pos = []
                         state_copy.player = not self.player
+                        state_copy.update_initial_moves()
                 else:
                     print("No more moves for succesive capture")
                     state_copy.capture = no_capture
                     state_copy.player = not self.player
-                    temp=state_copy.get_available_captures()
-                    temp2=state_copy.get_available_non_captures()
-                    temp_captures=set([x.capture_positions[1] for x in temp if len(x.capture_positions)==2])
-                    temp_non_captures = set([x.non_capture_positions[1] for x in temp2 if len(x.non_capture_positions)==2])
-                    print(temp_captures)
-                    print(temp_non_captures)
-                    if(temp!=[]):
-                        state_copy.available_moves = list(temp_captures) #state_copy.initial_moves_only_captures()
-                    else:
-                        state_copy.available_moves=list(temp_non_captures)
-
-
+                    state_copy.update_initial_moves()
                     state_copy.moved_pos = []
             else:
                 if(list(self.get_available_captures()) != []):
@@ -408,7 +388,7 @@ class State:
             state_copy.capture = no_capture
             state_copy.board[x][y] = space
             state_copy.non_captures+=1
-            state_copy.non_capture_positions.append(moved_pos)
+            state_copy.non_capture_position = moved_pos
             state_copy.board[moved_pos[0]][moved_pos[1]] = self.player
             yield state_copy
 
