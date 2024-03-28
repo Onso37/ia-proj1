@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import time
+from memory_profiling import *
 
 class Node:
     def __init__(self, state):
@@ -85,5 +86,6 @@ def monte_carlo_tree_search(root, time_limit):
 
     return root.best_child()
 
+@profile
 def execute_mcts_move(state, _):
     return monte_carlo_tree_search(Node(state), 5).state

@@ -607,6 +607,8 @@ def main():
                 state = players[state.player].move(state)
                 displayed = False
                 if GUI:
+                    if players[not state.player].type == "Minimax":
+                        show_statistics(screen, font)
                     pygame_get_enter()
         announce_winner(state.winner,screen,font)
 
