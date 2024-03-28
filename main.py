@@ -82,6 +82,7 @@ class State:
         self.capture = no_capture
         self.last_dir = None
         self.capture_positions = []
+        self.non_capture_positions = []
         self.white_pieces = (ROWS * COLS)//2
         self.black_pieces = (ROWS * COLS)//2
         self.white_captured = 0
@@ -312,12 +313,15 @@ class State:
                     state_copy.capture = no_capture
                     state_copy.player = not self.player
                     temp=state_copy.get_available_captures()
-                    ##temp_captures=[x.capture_positions[0] for x in temp if len(x.capture_positions)==1]
-                    ##print(temp_captures)
+                    temp2=state_copy.get_available_non_captures()
+                    temp_captures=set([x.capture_positions[1] for x in temp if len(x.capture_positions)==2])
+                    temp_non_captures = set([x.non_capture_positions[1] for x in temp2 if len(x.non_capture_positions)==2])
+                    print(temp_captures)
+                    print(temp_non_captures)
                     if(temp!=[]):
-                        state_copy.available_moves=state_copy.initial_moves_only_captures()
+                        state_copy.available_moves = list(temp_captures) #state_copy.initial_moves_only_captures()
                     else:
-                        state_copy.available_moves=state_copy.initial_moves()
+                        state_copy.available_moves=list(temp_non_captures)
 
 
                     state_copy.moved_pos = []
@@ -404,7 +408,7 @@ class State:
             state_copy.capture = no_capture
             state_copy.board[x][y] = space
             state_copy.non_captures+=1
-            state_copy.moved_pos.append(moved_pos)
+            state_copy.non_capture_positions.append(moved_pos)
             state_copy.board[moved_pos[0]][moved_pos[1]] = self.player
             yield state_copy
 
