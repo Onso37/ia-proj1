@@ -213,39 +213,7 @@ class State:
         
         return -1
                     
-    def check_neighbour(self,pos,color):
-        x,y=pos
-        res=False
-        for dir in directions:
-            x1,y1=dir
-            if(not self.in_bounds(x+x1,y+y1)):
-                continue
-            if(self.board[x+x1][y+y1] == color):
-                return True
-        return res
-    def check_neighbour_has_capture(self,pos,color):
-        x,y=pos
-        for dir in directions:
-            x1,y1=dir
-            if(not self.in_bounds(x+x1,y+y1)):
-                continue
-            if(self.board[x+x1][y+y1] == color and (self.evaluate_capture((x+x1,y+y1),pos)[0] or self.evaluate_capture((x+x1,y+y1),pos)[1]) and (pos not in self.moved_pos)):
-                return True
-        return False
-    def initial_moves_only_captures(self):
-        temp=[]
-        for x in range(ROWS):
-            for y in range(COLS):
-                if(self.board[x][y]==space and self.check_neighbour_has_capture((x,y),self.player)):
-                    temp.append((x,y))
-        return temp
-    def initial_moves(self):
-        temp=[]
-        for x in range(ROWS):
-            for y in range(COLS):
-                if(self.board[x][y]==space and self.check_neighbour((x,y),self.player)):
-                    temp.append((x,y))
-        return temp
+
     def update_initial_moves(self):
         temp = list(self.get_available_captures())
         temp2 = list(self.get_available_non_captures())
@@ -316,6 +284,7 @@ class State:
                     state_copy.player = not self.player
                     
                 elif (self.available_moves == [] and (self.capture == no_capture) and (state_copy.available_moves != [] or state_copy.available_moves==[])):
+                    print("First movement")
                     state_copy.moved_pos.append(player_pos)
                     state_copy.player = not self.player
                 elif (self.capture!=no_capture):
