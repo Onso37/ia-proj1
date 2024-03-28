@@ -1,5 +1,6 @@
 import numpy
 from main import ROWS, COLS
+import math
 
 left = (0,-1)
 right = (0, 1)
@@ -71,3 +72,13 @@ def heuristic3(player, state):
                 chunks += 1
 
     return heuristic2(player, state) - 0.5*chunks
+
+def heuristic4(player, state):
+    winner = state.check_win()
+    if winner == player:
+        return math.inf
+    elif winner == (not player) or winner == -1:
+        return -math.inf
+    else:
+        return heuristic3(player, state)
+    

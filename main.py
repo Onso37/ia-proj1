@@ -572,12 +572,12 @@ def main():
                 playerTypes = (2, 2)
 
         algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
-        difficulties = [heuristic1, heuristic2, heuristic3]
+        difficulties = [heuristic1, heuristic2, heuristic3, heuristic4]
         for i in range(2):
             if playerTypes[i] == 2:
                 algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
                 algo = get_pygame_input(screen, font, algoTypes) - 1
-                difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks"]) - 1
+                difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance"]) - 1
                 players[i] = AIPlayer(algos[algo], difficulties[difficulty], algoTypes[algo])
 
         while running and state.winner == 2:
