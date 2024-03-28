@@ -11,8 +11,9 @@ class Node:
         self.parent = None
         self.generator = self.state.get_all_moves()
         self.fully_expanded = False
+        self.unused = list(self.generator)
 
-    def expand(self):
+    """def expand(self):
         child = next(self.generator, None)
         if (child):
             new_node = Node(child)
@@ -21,7 +22,20 @@ class Node:
             self.children.append(new_node)
             return new_node
         else:
+            self.fully_expanded = True"""
+    
+    def expand(self):
+        if len(self.unused) == 0:
             self.fully_expanded = True
+            return None
+        i = random.randrange(len(self.unused)) 
+        self.unused[i], self.unused[-1] = self.unused[-1], self.unused[i]    
+        move = self.unused.pop()  
+        new_node = Node(move)
+        new_node.parent = self
+        new_node.state.player = not new_node.state.player
+        self.children.append(new_node)
+        return new_node
 
     def addChild(self, child):
         self.children.append(child)
