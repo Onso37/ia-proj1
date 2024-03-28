@@ -11,6 +11,7 @@ import random
 import functools 
 from minimax import execute_minimax_move
 from copy import deepcopy
+from collections import deque
 
 
 capture_by_approach=0
@@ -310,6 +311,55 @@ class State:
     
     def in_bounds(self, x, y):
         return not (x < 0 or x >= ROWS or y < 0 or y >= COLS)
+
+    def try_moves_bfs(self, x, y, in_sequence=False):
+        #states = []
+        queue = deque()
+        queue.append((self, False, (x,y)))
+        while len(queue) > 0:
+            state, in_sequence, (x,y) = queue.popleft()
+            if not in_sequence:
+                state.last_dir = None
+                state.capture_positions = [(x, y)]
+            else:
+                #states.append(self)
+                state.check_win()
+                yield state
+            
+            for dir in state.possible_moves_2(x, y):
+                moved_pos = vector_sum((x, y), dir)
+                if state.in_bounds(moved_pos[0], moved_pos[1]) and state.board[moved_pos[0], moved_pos[1]] != space:
+                    continue
+
+                if in_sequence and (dir == state.last_dir or moved_pos in state.capture_positions):
+                    continue
+
+                front_x, front_y = vector_sum(moved_pos, dir)
+                back_x, back_y = vector_sub((x, y), dir)
+
+                if state.in_bounds(front_x, front_y) and state.board[front_x][front_y] == (not state.player):
+                    state_copy = deepcopy(state)
+                    state_copy.capture = capture_by_approach
+                    state_copy.last_dir = dir
+                    state_copy.capture_positions.append(moved_pos)
+                    state_copy.boards.append(state.board)
+                    state_copy.non_captures=0
+
+                    state_copy.capture_move((x, y), moved_pos)
+                    queue.append((state_copy, True, moved_pos))
+                    #yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
+
+                if self.in_bounds(back_x, back_y) and state.board[back_x][back_y] == (not state.player):
+                    state_copy = deepcopy(state)
+                    state_copy.capture = capture_by_withdrawal
+                    state_copy.last_dir = dir
+                    state_copy.capture_positions.append(moved_pos)
+                    state_copy.boards.append(state.board)
+                    state_copy.non_captures=0
+
+                    state_copy.capture_move((x, y), moved_pos)
+                    queue.append((state_copy, True, moved_pos))
+                    #yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
 
     def try_moves(self, x, y, in_sequence=False):
         #states = []
