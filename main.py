@@ -518,6 +518,7 @@ def get_pygame_input(screen, font, opts):
         textRect.bottomleft = (0, 480-24*i)
         screen.blit(display_text, textRect)
     pygame.display.flip()
+    pygame.event.clear()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
