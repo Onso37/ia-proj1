@@ -144,7 +144,7 @@ class State:
     
     def can_be_captured(self,pos):
         temp = list(generate_neighbors(pos))
-        if(not self.has_diagonal(pos,temp[4][0])):
+        if(pos[0]%2 != pos[1]%2):
            temp = temp[:len(temp)//2]
         for neighbour in temp:
                 neighbour1=neighbour[0]
@@ -645,13 +645,13 @@ def main():
 
         algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
         statistics = [None, show_minimax_statistics, show_mcts_statistics]
-        difficulties = [heuristic1, heuristic2, heuristic3, heuristic4]
+        difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5]
         for i in range(2):
             if playerTypes[i] == 2:
                 algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
                 algo = get_pygame_input(screen, font, algoTypes) - 1
                 if algo == 1:
-                    difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance"]) - 1
+                    difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance", "Complex heuristic"]) - 1
                 else:
                     difficulty = 0
                 players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo])

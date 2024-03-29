@@ -82,3 +82,32 @@ def heuristic4(player, state):
     else:
         return heuristic3(player, state)
     
+def heuristic5(player, state):
+    score = 0
+    for x in range(ROWS):
+        for y in range(1 - x%2, COLS, 2):
+            if state.board[x][y] == player and (not state.can_be_captured((x, y))):
+                for nx in [-1,1]:
+                    for ny in [-1,1]:
+                        if in_bounds((nx, ny)) and state.board[nx][ny] == (not player):
+                            score += 1
+    
+    for x in range(0, ROWS, ROWS-1):
+        if x == 0:
+            offset = 1
+        else:
+            offset = -1
+        for y in range(1, COLS-1):
+            if state.board[x][y] == (not player) and state.board[x+offset][y] == player:
+                score += 1
+    for x in range(1, ROWS-1):
+        for y in range(0, COLS, COLS-1):
+            if y == 0:
+                offset = 1
+            else:
+                offset = -1
+            if state.board[x][y] == (not player) and state.board[x][y+offset] == player:
+                score += 1
+    
+    return heuristic4(player, state) + 0.75*score
+    
