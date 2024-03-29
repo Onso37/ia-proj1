@@ -313,6 +313,7 @@ class State:
 
     def try_moves_bfs(self, x, y, in_sequence=False):
         #states = []
+        global GUI
         queue = deque()
         longest_moves = []
         old_level = 0
@@ -348,7 +349,8 @@ class State:
                     state_copy.capture = capture_by_approach
                     state_copy.last_dir = dir
                     state_copy.capture_positions.append(moved_pos)
-                    state_copy.boards.append(state.board)
+                    if GUI:
+                        state_copy.boards.append(state.board)
                     state_copy.non_captures=0
 
                     state_copy.capture_move((x, y), moved_pos)
@@ -360,7 +362,8 @@ class State:
                     state_copy.capture = capture_by_withdrawal
                     state_copy.last_dir = dir
                     state_copy.capture_positions.append(moved_pos)
-                    state_copy.boards.append(state.board)
+                    if GUI:
+                        state_copy.boards.append(state.board)
                     state_copy.non_captures=0
 
                     state_copy.capture_move((x, y), moved_pos)
@@ -369,6 +372,7 @@ class State:
         yield from longest_moves
 
     def try_moves(self, x, y, in_sequence=False):
+        global GUI
         #states = []
         if not in_sequence:
             self.last_dir = None
@@ -394,7 +398,8 @@ class State:
                 state_copy.capture = capture_by_approach
                 state_copy.last_dir = dir
                 state_copy.capture_positions.append(moved_pos)
-                state_copy.boards.append(self.board)
+                if GUI:
+                    state_copy.boards.append(self.board)
                 state_copy.non_captures=0
 
                 state_copy.capture_move((x, y), moved_pos)
@@ -405,7 +410,8 @@ class State:
                 state_copy.capture = capture_by_withdrawal
                 state_copy.last_dir = dir
                 state_copy.capture_positions.append(moved_pos)
-                state_copy.boards.append(self.board)
+                if GUI:
+                    state_copy.boards.append(self.board)
                 state_copy.non_captures=0
 
                 state_copy.capture_move((x, y), moved_pos)
