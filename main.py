@@ -151,11 +151,9 @@ class State:
                 neighbour2=neighbour[1]
                 if(not self.in_bounds(neighbour1[0],neighbour1[1]) or not self.in_bounds(neighbour2[0],neighbour2[1])):
                     continue
-                self.player = not self.player
-                if(self.evaluate_capture(neighbour1,neighbour2)[1] or self.evaluate_capture(neighbour2,neighbour1)[0]):
-                    self.player = not self.player
+                enemy=not self.player
+                if((self.board[neighbour1[0]][neighbour1[1]] == enemy and self.board[neighbour2[0]][neighbour2[1]] == space) or (self.board[neighbour2[0]][neighbour2[1]] == enemy and self.board[neighbour1[0]][neighbour1[1]] == space)):
                     return True
-                self.player = not self.player
         return False
 
     def evaluate_capture(self,player_pos,move):
