@@ -651,24 +651,28 @@ def main():
                 if (len(state.boards) > 1):
                     for board in state.boards:
                         draw_bg(screen)
-                        pieces = update_sprite(board, screen, ROWS, COLS,state)
+                        pieces = update_sprite(board, screen, ROWS, COLS)
                         pieces.update()
                         pieces.draw(screen)
                         players[not state.player].show_statistics(screen, font)
                         pygame.display.flip()
                         pygame_get_enter()
                 draw_bg(screen)
-                pieces = update_sprite(state.board, screen, ROWS, COLS,state)
-                pieces.update()
-                pieces.draw(screen)
-                pygame.display.flip()
                 state.boards = []
             if(not displayed):
                 print("Turn:", "White" if state.player else "Black")        
                 displayed = True
             if playerTypes[state.player] == 1:
+                pieces = update_sprite(state.board, screen, ROWS, COLS,state)
+                pieces.update()
+                pieces.draw(screen)
+                pygame.display.flip()
                 state = execute_player_move(screen, font, state, pieces)
             elif playerTypes[state.player] == 2:
+                pieces = update_sprite(state.board, screen, ROWS, COLS)
+                pieces.update()
+                pieces.draw(screen)
+                pygame.display.flip()
                 state = players[state.player].move(state)
                 displayed = False
                 if GUI:
