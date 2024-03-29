@@ -109,5 +109,5 @@ def heuristic5(player, state):
             if state.board[x][y] == (not player) and state.board[x][y+offset] == player:
                 score += 1
     
-    return heuristic4(player, state) + 0.75*score
+    return heuristic4(player, state) + 0.5*score
     
