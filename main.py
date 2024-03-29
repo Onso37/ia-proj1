@@ -3,13 +3,12 @@ import pygame
 import numpy
 import time
 from Piece import *
-from minimax import *
-from mcts import execute_mcts_move
+from mcts import execute_mcts_move, show_mcts_statistics
 from AIPlayer import *
 from heuristics import *
 import random
 import functools 
-from minimax import execute_minimax_move
+from minimax import execute_minimax_move, show_minimax_statistics
 from copy import deepcopy
 from collections import deque
 
@@ -315,16 +314,23 @@ class State:
     def try_moves_bfs(self, x, y, in_sequence=False):
         #states = []
         queue = deque()
-        queue.append((self, False, (x,y)))
+        longest_moves = []
+        old_level = 0
+        queue.append((self, False, (x,y), 1))
         while len(queue) > 0:
-            state, in_sequence, (x,y) = queue.popleft()
+            state, in_sequence, (x,y), level = queue.popleft()
             if not in_sequence:
                 state.last_dir = None
                 state.capture_positions = [(x, y)]
             else:
                 #states.append(self)
                 state.check_win()
-                yield state
+                if level != old_level:
+                    old_level = level
+                    longest_moves = [state]
+                else:
+                    longest_moves.append(state)
+                #yield state
             
             for dir in state.possible_moves_2(x, y):
                 moved_pos = vector_sum((x, y), dir)
@@ -346,7 +352,7 @@ class State:
                     state_copy.non_captures=0
 
                     state_copy.capture_move((x, y), moved_pos)
-                    queue.append((state_copy, True, moved_pos))
+                    queue.append((state_copy, True, moved_pos, level+1))
                     #yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
 
                 if self.in_bounds(back_x, back_y) and state.board[back_x][back_y] == (not state.player):
@@ -358,8 +364,9 @@ class State:
                     state_copy.non_captures=0
 
                     state_copy.capture_move((x, y), moved_pos)
-                    queue.append((state_copy, True, moved_pos))
+                    queue.append((state_copy, True, moved_pos, level+1))
                     #yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
+        yield from longest_moves
 
     def try_moves(self, x, y, in_sequence=False):
         #states = []
@@ -425,7 +432,7 @@ class State:
         for x in range(ROWS):
             for y in range(COLS):
                 if self.board[x][y] == self.player:
-                    yield from self.try_moves(x, y)
+                    yield from self.try_moves_bfs(x, y)
     
     def get_available_non_captures(self):
         for x in range(ROWS):
@@ -623,13 +630,17 @@ def main():
                 playerTypes = (2, 2)
 
         algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
+        statistics = [None, show_minimax_statistics, show_mcts_statistics]
         difficulties = [heuristic1, heuristic2, heuristic3, heuristic4]
         for i in range(2):
             if playerTypes[i] == 2:
                 algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
                 algo = get_pygame_input(screen, font, algoTypes) - 1
-                difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance"]) - 1
-                players[i] = AIPlayer(algos[algo], difficulties[difficulty], algoTypes[algo])
+                if algo == 1:
+                    difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance"]) - 1
+                else:
+                    difficulty = 0
+                players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo])
 
         while running and state.winner == 2:
             if GUI:
@@ -639,8 +650,7 @@ def main():
                         pieces = update_sprite(board, screen, ROWS, COLS)
                         pieces.update()
                         pieces.draw(screen)
-                        if players[not state.player].type == "Minimax":
-                            show_statistics(screen, font)
+                        players[not state.player].show_statistics(screen, font)
                         pygame.display.flip()
                         pygame_get_enter()
                 draw_bg(screen)
@@ -658,8 +668,7 @@ def main():
                 state = players[state.player].move(state)
                 displayed = False
                 if GUI:
-                    if players[not state.player].type == "Minimax":
-                        show_statistics(screen, font)
+                    players[not state.player].show_statistics(screen, font)
                     pygame_get_enter()
         announce_winner(state.winner,screen,font)
 

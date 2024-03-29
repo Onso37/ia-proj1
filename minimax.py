@@ -62,7 +62,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
             return evaluate_func(player, state), state
         return minEval, best_move
 
-def show_statistics(screen, font):
+def show_minimax_statistics(screen, font):
     display_text = font.render(f"{cuts} A-B cuts, {explored} explored, {totalT:.3f} s", True, (0,0,0))
     textRect = display_text.get_rect()
     textRect.topleft = (0, 0)

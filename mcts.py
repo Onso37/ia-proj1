@@ -1,7 +1,11 @@
 import numpy as np
 import random
 import time
+import pygame
 from memory_profiling import *
+
+simulations = 0
+explored = 0
 
 class Node:
     def __init__(self, state):
@@ -26,6 +30,7 @@ class Node:
             self.fully_expanded = True"""
     
     def expand(self):
+        global explored
         if len(self.unused) == 0:
             self.fully_expanded = True
             return None
@@ -36,6 +41,7 @@ class Node:
         new_node.parent = self
         new_node.state.player = not new_node.state.player
         self.children.append(new_node)
+        explored += 1
         return new_node
 
     def addChild(self, child):
@@ -61,12 +67,14 @@ def traverse(node):
     return curr
 
 def rollout(node):
+    global simulations
     curr = node.state
     while curr.winner == 2:
         moves = list(curr.get_all_moves())
         selected = random.choice(moves)
         curr = selected
 
+    simulations += 1
     return curr.winner
 
 def backpropagate(leaf, simulation_result, player):
@@ -85,6 +93,13 @@ def monte_carlo_tree_search(root, time_limit):
         backpropagate(leaf, simulation_result, root.state.player)
 
     return root.best_child()
+
+def show_mcts_statistics(screen, font):
+    display_text = font.render(f"{explored} explored, {simulations} playouts", True, (0,0,0))
+    textRect = display_text.get_rect()
+    textRect.topleft = (0, 0)
+    screen.blit(display_text, textRect)
+    pygame.display.flip()
 
 @profile
 def execute_mcts_move(state, _):
