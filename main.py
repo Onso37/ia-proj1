@@ -142,6 +142,22 @@ class State:
         return moves
 
     
+    def can_be_captured(self,pos):
+        temp = list(generate_neighbors(pos))
+        if(not self.has_diagonal(pos,temp[4][0])):
+           temp = temp[:len(temp)//2]
+        for neighbour in temp:
+                neighbour1=neighbour[0]
+                neighbour2=neighbour[1]
+                if(not self.in_bounds(neighbour1[0],neighbour1[1]) or not self.in_bounds(neighbour2[0],neighbour2[1])):
+                    continue
+                self.player = not self.player
+                if(self.evaluate_capture(neighbour1,neighbour2)[1] or self.evaluate_capture(neighbour2,neighbour1)[0]):
+                    self.player = not self.player
+                    return True
+                self.player = not self.player
+        return False
+
     def evaluate_capture(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
@@ -232,7 +248,7 @@ class State:
         xi,yi=player_pos
         x,y = move
         state_copy = deepcopy(self)
-
+        print("can be captured:",self.can_be_captured(player_pos))
         if(self.possible_move(player_pos,move)):
             captures = self.evaluate_capture(player_pos,move)
             if(captures[0] and captures[1]):
@@ -514,7 +530,7 @@ def get_pygame_input(screen, font, opts):
     if GUI == False:
         for opt in opts:
             print(opt)
-        while True:
+        while True: 
             val = int(input())
             if val >= 1 and val <= len(opts):
                 return val
