@@ -331,7 +331,7 @@ class State:
                     longest_moves = [state]
                 else:
                     longest_moves.append(state)
-                #yield state
+                yield state
             
             for dir in state.possible_moves_2(x, y):
                 moved_pos = vector_sum((x, y), dir)
@@ -369,7 +369,7 @@ class State:
                     state_copy.capture_move((x, y), moved_pos)
                     queue.append((state_copy, True, moved_pos, level+1))
                     #yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
-        yield from longest_moves
+        #yield from longest_moves
 
     def try_moves(self, x, y, in_sequence=False):
         global GUI
