@@ -5,12 +5,15 @@ import pygame
 import numpy
 from Piece import update_sprite
 import collections
+from memory_profiling import *
 
 cuts = 0
+explored = 0
 totalT = 0.0
 
 def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
-    global cuts
+    global cuts, explored
+    explored +=  1
     if depth == 0:
         return evaluate_func(player, state), state
     
@@ -59,18 +62,20 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
             return evaluate_func(player, state), state
         return minEval, best_move
 
-def show_statistics(screen, font):
-    display_text = font.render(f"{cuts} A-B cuts, {totalT} s", True, (0,0,0))
+def show_minimax_statistics(screen, font):
+    display_text = font.render(f"{cuts} A-B cuts, {explored} explored, {totalT:.3f} s", True, (0,0,0))
     textRect = display_text.get_rect()
     textRect.topleft = (0, 0)
     screen.blit(display_text, textRect)
     pygame.display.flip()
 
+@profile
 def execute_minimax_move(state, evaluate_func):
-    global cuts, totalT
+    global cuts, totalT, explored
     cuts = 0
+    explored = 0
     startT = time.time()
-    _, move = minimax(state, 3, -math.inf, math.inf, True, state.player, evaluate_func)
+    _, move = minimax(state, 4, -math.inf, math.inf, True, state.player, evaluate_func)
     endT = time.time()
     totalT = endT-startT
     move.check_win()
