@@ -221,12 +221,9 @@ class State:
         temp2 = list(self.get_available_non_captures())
         temp_captures= set([x.capture_positions[1] for x in temp if len(x.capture_positions)==2])
         temp_non_captures = set([x.non_capture_position for x in temp2])
-        print(temp_captures)
-        print(temp_non_captures)
         if(len(temp)!= 0):
             self.available_moves = list(temp_captures) #state_copy.initial_moves_only_captures()
         else:
-            print("here")
             self.available_moves = list(temp_non_captures)
         
     def move(self,player_pos,move,screen,font):
@@ -265,7 +262,6 @@ class State:
                     if(choice == 1):                            
                             state_copy.player = self.player
                             state_copy.moved_pos.append(player_pos)
-                            print(state_copy.moved_pos)
                     else:
                         state_copy.moved_pos = []
                         #state_copy.capture = no_capture
