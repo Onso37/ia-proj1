@@ -1,5 +1,6 @@
 import numpy
 from main import ROWS, COLS
+import math
 
 left = (0,-1)
 right = (0, 1)
@@ -32,22 +33,33 @@ def generate_neighbors(position):
 def heuristic2(player, state):
     score = 0
 
-    for x in range(1, ROWS, 2):
-        for y in range(1, COLS, 2):
+    for x in range(1, ROWS-1):
+        for y in range(1, COLS-1):
+            if x%2 == x%2:
+                if state.board[x][y] == player:
+                    score += 1
+                elif state.board[x][y] == (not player):
+                    score -= 1
+    for x in range(0, ROWS, ROWS-1):
+        for y in range(COLS):
             if state.board[x][y] == player:
-                score += 1
-            elif state.board[x][y] == (not player):
-                score -= 1
+                score -= 0.5
+    for x in range(ROWS):
+        for y in range(0, COLS, COLS-1):
+            if state.board[x][y] == player:
+                score -= 0.5
     
     return 5*heuristic1(player, state) + score
 
-def dfs(board, player, x, y):
+def dfs(board, player, x, y, count=0):
     board[x][y] = 2
     for i in range(4):
         new_x = x+directions[i][0]
         new_y = y+directions[i][1]
         if in_bounds((new_x, new_y)) and board[new_x][new_y] == player:
-            dfs(board, player, x+directions[i][0], y+directions[i][1])
+            count += dfs(board, player, x+directions[i][0], y+directions[i][1], count)
+
+    return count
         
 
 def heuristic3(player, state):
@@ -56,7 +68,17 @@ def heuristic3(player, state):
     for x in range(ROWS):
         for y in range(COLS):
             if (board[x][y] == player):
-                dfs(board, player, x, y)
+                size = dfs(board, player, x, y)
                 chunks += 1
 
     return heuristic2(player, state) - 0.5*chunks
+
+def heuristic4(player, state):
+    winner = state.check_win()
+    if winner == player:
+        return math.inf
+    elif winner == (not player) or winner == -1:
+        return -math.inf
+    else:
+        return heuristic3(player, state)
+    
