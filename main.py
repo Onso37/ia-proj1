@@ -99,7 +99,8 @@ class State:
         xi,yi=player_pos
         x,y = move
         xf,yf = x-xi,y-yi
-        
+        if(move in self.moved_pos):
+            return False
         if (x < 0 or x >= ROWS or y < 0 or y >= COLS):
             return False
         if(abs(xf)>1 or abs(yf)>1):
@@ -263,13 +264,14 @@ class State:
                     if(choice == 1):                            
                             state_copy.player = self.player
                             state_copy.moved_pos.append(player_pos)
+                            print(state_copy.moved_pos)
                     else:
                         state_copy.moved_pos = []
                         state_copy.player = not self.player
                         state_copy.update_initial_moves()
                 else:
                     print("No more moves for succesive capture")
-                    state_copy.capture = no_capture
+                    #state_copy.capture = no_capture
                     state_copy.player = not self.player
                     state_copy.update_initial_moves()
                     state_copy.moved_pos = []
@@ -277,13 +279,14 @@ class State:
                 if(list(self.get_available_captures()) != []):
                     print("Mandatory captures existent!")
                     return -1
-                elif(state_copy.available_moves == [] and (self.capture != no_capture)):
+                elif(state_copy.available_moves == [] and (self.moved_pos != [])):
                     if(self.available_moves!=[]):
-                        print("Invalid Move")
+                        print("Invalid Move during successive capture")
                         return -1
+                    print("First movement")
                     state_copy.player = not self.player
                     
-                elif (self.available_moves == [] and (self.capture == no_capture) and (state_copy.available_moves != [] or state_copy.available_moves==[])):
+                elif ((self.moved_pos == []) and (state_copy.available_moves != [] or state_copy.available_moves==[])):
                     print("First movement")
                     state_copy.moved_pos.append(player_pos)
                     state_copy.player = not self.player

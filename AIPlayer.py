@@ -4,4 +4,6 @@ class AIPlayer:
         self.evaluateFunc = evaluate_func
         
     def move(self, state):
-        return self.moveFunc(state, self.evaluateFunc)
+        temp = self.moveFunc(state, self.evaluateFunc)
+        temp.update_initial_moves()
+        return temp
