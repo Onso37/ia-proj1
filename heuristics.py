@@ -1,6 +1,7 @@
 import numpy
 from main import ROWS, COLS
 import math
+from collections import deque
 
 left = (0,-1)
 right = (0, 1)
@@ -36,7 +37,7 @@ def heuristic2(player, state):
     for x in range(1, ROWS-1):
         for y in range(1, COLS-1):
             if x%2 == x%2:
-                if state.board[x][y] == player:
+                if state.board[x][y] == player and (not state.can_be_captured((x, y))):
                     score += 1
                 elif state.board[x][y] == (not player):
                     score -= 1
@@ -60,6 +61,25 @@ def dfs(board, player, x, y, count=0):
             count += dfs(board, player, x+directions[i][0], y+directions[i][1], count)
 
     return count
+
+def bfs(board, sources, player):
+    score = 0
+    queue = deque()
+    for source in sources:
+        queue.append((source, 0))
+
+    while len(queue) > 0:
+        (x, y), value = queue.popleft()
+        if board[x][y] == (not player):
+            score += value
+        board[x][y] = 3
+        for i in range(4):
+            new_x = x+directions[i][0]
+            new_y = y+directions[i][1]
+            if in_bounds((new_x, new_y)) and board[new_x][new_y] != 3:
+                queue.append(((new_x, new_y), value + 1))
+
+    return score
         
 
 def heuristic3(player, state):
@@ -110,4 +130,25 @@ def heuristic5(player, state):
                 score += 1
     
     return heuristic4(player, state) + 0.5*score
+
+def heuristic6(player, state):
+    score = 0
+    prev = heuristic5(player, state)
+    if player == 1:
+        enemy_pieces = state.black_pieces
+        my_pieces = state.white_pieces
+    else:
+        enemy_pieces = state.white_pieces
+        my_pieces = state.black_pieces
+
+    if enemy_pieces < (ROWS*COLS//2)*0.25 and enemy_pieces < my_pieces:
+        sources = []
+        for x in range(ROWS):
+            for y in range(COLS):
+                if state.board[x][y] == (not player):
+                    sources.append((x, y))
+        score = bfs(state.board.copy(), sources, player)
+    
+    return prev - score
+    
     

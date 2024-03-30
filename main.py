@@ -645,13 +645,13 @@ def main():
 
         algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
         statistics = [None, show_minimax_statistics, show_mcts_statistics]
-        difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5]
+        difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6]
         for i in range(2):
             if playerTypes[i] == 2:
                 algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
                 algo = get_pygame_input(screen, font, algoTypes) - 1
                 if algo == 1:
-                    difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance", "Complex heuristic"]) - 1
+                    difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance", "Complex heuristic", "Endgame BFS"]) - 1
                 else:
                     difficulty = 0
                 players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo])
