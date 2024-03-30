@@ -75,7 +75,7 @@ def bfs(board, sources, player):
     while len(queue) > 0:
         (x, y), value = queue.popleft()
         if board[x][y] == (not player):
-            score += value
+            score += value if value >= 3 else 0
         board[x][y] = 3
         for i in range(4):
             new_x = x+directions[i][0]
@@ -205,4 +205,26 @@ def strategic(player, state):
     return chunks
 
 def heuristic7(player, state):
-    return 2*material(player, state) + tactical(player, state) + strategic(player, state)
+    winner = state.check_win()
+    if winner == player:
+        return math.inf
+    elif winner == (not player):       # or winner == -1:
+        return -math.inf
+    else:
+        score = 0
+        if player == 1:
+            enemy_pieces = state.black_pieces
+            my_pieces = state.white_pieces
+        else:
+            enemy_pieces = state.white_pieces
+            my_pieces = state.black_pieces
+
+        if enemy_pieces < (ROWS*COLS//2)*0.25 and enemy_pieces <= my_pieces:
+            sources = []
+            for x in range(ROWS):
+                for y in range(COLS):
+                    if state.board[x][y] == (not player):
+                        sources.append((x, y))
+            score = bfs(state.board.copy(), sources, player)
+            score -= my_pieces*min(ROWS, COLS)
+        return 2*material(player, state) + tactical(player, state) + strategic(player, state) - score
