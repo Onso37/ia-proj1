@@ -97,7 +97,7 @@ def heuristic4(player, state):
     winner = state.check_win()
     if winner == player:
         return math.inf
-    elif winner == (not player) or winner == -1:
+    elif winner == (not player):       # or winner == -1:
         return -math.inf
     else:
         return heuristic3(player, state)
@@ -141,13 +141,14 @@ def heuristic6(player, state):
         enemy_pieces = state.white_pieces
         my_pieces = state.black_pieces
 
-    if enemy_pieces < (ROWS*COLS//2)*0.25 and enemy_pieces < my_pieces:
+    if enemy_pieces < (ROWS*COLS//2)*0.25 and enemy_pieces <= my_pieces:
         sources = []
         for x in range(ROWS):
             for y in range(COLS):
                 if state.board[x][y] == (not player):
                     sources.append((x, y))
         score = bfs(state.board.copy(), sources, player)
+        prev += my_pieces*min(ROWS, COLS)
     
     return prev - score
     
