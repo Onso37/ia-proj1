@@ -338,7 +338,7 @@ class State:
                     longest_moves = [state]
                 else:
                     longest_moves.append(state)
-                #yield state
+                yield state
             
             for dir in state.possible_moves_2(x, y):
                 moved_pos = vector_sum((x, y), dir)
@@ -376,7 +376,7 @@ class State:
                     state_copy.capture_move((x, y), moved_pos)
                     queue.append((state_copy, True, moved_pos, level+1))
                     #yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
-        yield from longest_moves
+        #yield from longest_moves
 
     def try_moves(self, x, y, in_sequence=False):
         global GUI
@@ -601,6 +601,9 @@ def main():
     else:
         games = 1
 
+    first = True
+    players = [None, None]
+    playerTypes = None
     for _ in range(games):
         state = State()
         if GUI:
@@ -626,35 +629,35 @@ def main():
         
         global displayed
         
-        if GUI:
+        if GUI and first:
             mode = get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs Human", "AI vs AI"])
         else:
             mode = 4
         
-        playerTypes = None
-        players = [None, None]
-        match mode:
-            case 1:
-                playerTypes = (1, 1)
-            case 2:
-                playerTypes = (2, 1)
-            case 3:
-                playerTypes = (1, 2)
-            case 4:
-                playerTypes = (2, 2)
+        if first:
+            match mode:
+                case 1:
+                    playerTypes = (1, 1)
+                case 2:
+                    playerTypes = (2, 1)
+                case 3:
+                    playerTypes = (1, 2)
+                case 4:
+                    playerTypes = (2, 2)
 
-        algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
-        statistics = [None, show_minimax_statistics, show_mcts_statistics]
-        difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6]
-        for i in range(2):
-            if playerTypes[i] == 2:
-                algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
-                algo = get_pygame_input(screen, font, algoTypes) - 1
-                if algo == 1:
-                    difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance", "Complex heuristic", "Endgame BFS"]) - 1
-                else:
-                    difficulty = 0
-                players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo])
+        if first:
+            algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
+            statistics = [None, show_minimax_statistics, show_mcts_statistics]
+            difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6]
+            for i in range(2):
+                if playerTypes[i] == 2:
+                    algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
+                    algo = get_pygame_input(screen, font, algoTypes) - 1
+                    if algo == 1:
+                        difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance", "Complex heuristic", "Endgame BFS"]) - 1
+                    else:
+                        difficulty = 0
+                    players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo])
 
         while running and state.winner == 2:
             if GUI:
@@ -664,6 +667,7 @@ def main():
                         pieces = update_sprite(board, screen, ROWS, COLS)
                         pieces.update()
                         pieces.draw(screen)
+                        players[not state.player].show_statistics(screen, font)
                         pygame.display.flip()
                         pygame_get_enter()
                 draw_bg(screen)
@@ -679,12 +683,13 @@ def main():
                 state = execute_player_move(screen, font, state, pieces)
             elif playerTypes[state.player] == 2:
                 state = players[state.player].move(state)
-                if algo == 1:
+                if GUI:
                     players[not state.player].show_statistics(screen, font)
                 displayed = False
                 if GUI:
                     pygame_get_enter()
         announce_winner(state.winner,screen,font)
+        first = False
 
 if __name__=="__main__":
     main()

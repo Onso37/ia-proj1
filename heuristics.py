@@ -45,10 +45,14 @@ def heuristic2(player, state):
         for y in range(COLS):
             if state.board[x][y] == player:
                 score -= 0.5
+            elif state.board[x][y] == (not player):
+                score += 0.5
     for x in range(ROWS):
         for y in range(0, COLS, COLS-1):
             if state.board[x][y] == player:
                 score -= 0.5
+            elif state.board[x][y] == (not player):
+                score += 0.5
     
     return 5*heuristic1(player, state) + score
 
