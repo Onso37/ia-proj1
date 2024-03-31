@@ -31,7 +31,7 @@ directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 displayed = False
 
 ROWS = 5
-COLS = 5
+COLS = 9
 
 GUI = False
 
@@ -695,7 +695,7 @@ def main():
                     algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
                     algo = get_pygame_input(screen, font, algoTypes) - 1
                     if algo == 1:
-                        difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance", "Complex heuristic", "Endgame BFS", "Cena Lucas"]) - 1
+                        difficulty = get_pygame_input(screen, font, ["Just material", "Material + tactical", "Material + tactical + strategic", "Terminal return values", "Complex heuristic", "Endgame BFS", "Cena Lucas"]) - 1
                         num_parameter = get_pygame_number(screen, font, "Depth? (enter to confirm)")
                         prune_shorts = get_pygame_input(screen, font, ["Process all moves", "Ignore short moves"])
                     elif algo == 2:

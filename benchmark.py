@@ -31,7 +31,7 @@ directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 displayed = False
 
 ROWS = 5
-COLS = 5
+COLS = 9
 
 GUI = False
 
@@ -496,7 +496,7 @@ def draw_motif(screen, x, y, size):
     pygame.draw.line(screen, (0, 0, 0), (x, y), (x+size, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size), (x+size, y))
 
-def announce_winner(winner,screen,font):
+def announce_winner(winner,screen,font,moves):
     global GUI
 
     string_winner=""
@@ -506,6 +506,9 @@ def announce_winner(winner,screen,font):
         string_winner="Black wins"
     else:
         string_winner="Draw"
+    
+    string_winner += f" in {moves} moves"
+
     if GUI:
         display_text = font.render(string_winner, True, (0,0,0))
         textRect = display_text.get_rect()
@@ -639,7 +642,7 @@ def main():
     first = True
     players = [None, None]
     playerTypes = None
-    for white_h in range(6, -1, -1):
+    for white_h in range(7):
         for black_h in range(7):
             print(f"White is heuristic{white_h+1}, black is heuristic{black_h+1}")
             for _ in range(games):
@@ -694,7 +697,7 @@ def main():
                             algo = 1
                             if algo == 1:
                                 difficulty = black_h if i == 0 else white_h
-                                num_parameter = 6
+                                num_parameter = 3
                                 prune_shorts = 1
                             elif algo == 2:
                                 difficulty = 0
@@ -703,7 +706,9 @@ def main():
                                 difficulty = 0
                             players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts)
 
+                moves = 0
                 while running and state.winner == 2:
+                    moves += 1
                     if GUI:
                         if (len(state.boards) > 1):
                             for board in state.boards:
@@ -732,7 +737,7 @@ def main():
                         displayed = False
                         if GUI:
                             pygame_get_enter()
-                announce_winner(state.winner,screen,font)
+                announce_winner(state.winner,screen,font,moves)
 
 if __name__=="__main__":
     main()

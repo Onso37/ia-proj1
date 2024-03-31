@@ -13,26 +13,21 @@ down_left = (1,-1)
 down_right = (1,1)
 directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 
-def heuristic1(player, state):
+def material(player, state):
     if player == 1:
         return state.white_pieces - state.black_pieces
     else:
         return state.black_pieces - state.white_pieces
-    #count_a = numpy.count_nonzero(state.board == player)
-    #count_b = numpy.count_nonzero(state.board == (not player))
-    #return count_a - count_b
 
-def in_bounds(position):
-    x, y = position
-    return not (x < 0 or x >= ROWS or y < 0 or y >= COLS)
-
-def generate_neighbors(position):
-    for dir in directions:
-        temp = (position[0] + dir[0], position[1] + dir[1])
-        yield [temp, (temp[0] + dir[0], temp[1] + dir[1])]
-
-def heuristic2(player, state):
+def tactical(player, state):
     score = 0
+
+    for x in range(ROWS):
+        for y in range(COLS):
+            if state.player != player and state.board[x][y] == player and state.can_be_captured((x, y)):
+                score -= 1
+            elif state.player == player and state.board[x][y] == (not player) and state.can_be_captured((x, y)):
+                score += 1
 
     for x in range(1, ROWS-1):
         for y in range(1, COLS-1):
@@ -54,7 +49,34 @@ def heuristic2(player, state):
             elif state.board[x][y] == (not player):
                 score += 0.5
     
-    return 5*heuristic1(player, state) + score
+    return score
+
+def strategic(player, state):
+    chunks = 0
+    board = state.board.copy()
+    for x in range(ROWS):
+        for y in range(COLS):
+            if (board[x][y] == player):
+                size = dfs(board, player, x, y)
+                if size > 2:
+                    chunks += 1
+
+    return chunks
+
+def heuristic1(player, state):
+    return material(player, state)
+
+def in_bounds(position):
+    x, y = position
+    return not (x < 0 or x >= ROWS or y < 0 or y >= COLS)
+
+def generate_neighbors(position):
+    for dir in directions:
+        temp = (position[0] + dir[0], position[1] + dir[1])
+        yield [temp, (temp[0] + dir[0], temp[1] + dir[1])]
+
+def heuristic2(player, state):
+    return material(player, state) + tactical(player, state)
 
 def dfs(board, player, x, y, count=0):
     board[x][y] = 2
@@ -87,22 +109,16 @@ def bfs(board, sources, player):
         
 
 def heuristic3(player, state):
-    chunks = 0
-    board = state.board.copy()
-    for x in range(ROWS):
-        for y in range(COLS):
-            if (board[x][y] == player):
-                size = dfs(board, player, x, y)
-                chunks += 1
-
-    return heuristic2(player, state) - 0.5*chunks
+    return material(player, state) + tactical(player, state) + strategic(player, state)
 
 def heuristic4(player, state):
     winner = state.check_win()
     if winner == player:
-        return math.inf
+        return 9999999
     elif winner == (not player):       # or winner == -1:
-        return -math.inf
+        return -9999999
+    elif winner == -1:
+        return 0
     else:
         return heuristic3(player, state)
     
@@ -155,56 +171,7 @@ def heuristic6(player, state):
         prev += my_pieces*min(ROWS, COLS)
     
     return prev - score
-    
-def material(player, state):
-    if player == 1:
-        return state.white_pieces - state.black_pieces
-    else:
-        return state.black_pieces - state.white_pieces
 
-def tactical(player, state):
-    score = 0
-
-    for x in range(ROWS):
-        for y in range(COLS):
-            if state.player != player and state.board[x][y] == player and state.can_be_captured((x, y)):
-                score -= 1
-            elif state.player == player and state.board[x][y] == (not player) and state.can_be_captured((x, y)):
-                score += 1
-
-    for x in range(1, ROWS-1):
-        for y in range(1, COLS-1):
-            if x%2 == x%2:
-                if state.board[x][y] == player:
-                    score += 1
-                elif state.board[x][y] == (not player):
-                    score -= 1
-    for x in range(0, ROWS, ROWS-1):
-        for y in range(COLS):
-            if state.board[x][y] == player:
-                score -= 0.5
-            elif state.board[x][y] == (not player):
-                score += 0.5
-    for x in range(ROWS):
-        for y in range(0, COLS, COLS-1):
-            if state.board[x][y] == player:
-                score -= 0.5
-            elif state.board[x][y] == (not player):
-                score += 0.5
-    
-    return score
-
-def strategic(player, state):
-    chunks = 0
-    board = state.board.copy()
-    for x in range(ROWS):
-        for y in range(COLS):
-            if (board[x][y] == player):
-                size = dfs(board, player, x, y)
-                if size > 2:
-                    chunks += 1
-
-    return chunks
 
 def heuristic7(player, state):
     winner = state.check_win()
