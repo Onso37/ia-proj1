@@ -167,13 +167,15 @@ def tactical(player, state):
 
     for x in range(ROWS):
         for y in range(COLS):
-            if state.can_be_captured((x, y)):
+            if state.player != player and state.board[x][y] == player and state.can_be_captured((x, y)):
                 score -= 1
+            elif state.player == player and state.board[x][y] == (not player) and state.can_be_captured((x, y)):
+                score += 1
 
     for x in range(1, ROWS-1):
         for y in range(1, COLS-1):
             if x%2 == x%2:
-                if state.board[x][y] == player and (not state.can_be_captured((x, y))):
+                if state.board[x][y] == player:
                     score += 1
                 elif state.board[x][y] == (not player):
                     score -= 1
@@ -207,9 +209,9 @@ def strategic(player, state):
 def heuristic7(player, state):
     winner = state.check_win()
     if winner == player:
-        return math.inf
+        return 999999999
     elif winner == (not player):       # or winner == -1:
-        return -math.inf
+        return -999999999
     else:
         score = 0
         if player == 1:
@@ -227,4 +229,4 @@ def heuristic7(player, state):
                         sources.append((x, y))
             score = bfs(state.board.copy(), sources, player)
             score -= my_pieces*min(ROWS, COLS)
-        return 2*material(player, state) + tactical(player, state) + strategic(player, state) - score
+        return 6*material(player, state) + 2*tactical(player, state) - strategic(player, state) #- score
