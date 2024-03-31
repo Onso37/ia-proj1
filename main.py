@@ -697,7 +697,7 @@ def main():
                         num_parameter = get_pygame_number(screen, font, "Seconds? (enter to confirm)")
                     else:
                         difficulty = 0
-                    players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo])
+                    players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter)
 
         while running and state.winner == 2:
             if GUI:

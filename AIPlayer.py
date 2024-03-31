@@ -1,12 +1,13 @@
 class AIPlayer:
-    def __init__(self, moveFunc, evaluate_func, statistics_func, type):
+    def __init__(self, moveFunc, evaluate_func, statistics_func, type, param):
         self.moveFunc = moveFunc
         self.evaluateFunc = evaluate_func
         self.statistics_func = statistics_func
         self.type = type
+        self.param = param
         
     def move(self, state):
-        temp = self.moveFunc(state, self.evaluateFunc)
+        temp = self.moveFunc(state, self.evaluateFunc, self.param)
         temp.update_initial_moves()
         return temp
     

@@ -105,8 +105,8 @@ def show_mcts_statistics(screen, font):
     screen.blit(display_text, textRect)
     pygame.display.flip()
 
-def execute_mcts_move(state, _):
+def execute_mcts_move(state, _, seconds):
     global simulations, wins
     simulations = 0
     wins = 0
-    return monte_carlo_tree_search(Node(state), 20).state
+    return monte_carlo_tree_search(Node(state), seconds).state
