@@ -31,7 +31,7 @@ directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 displayed = False
 
 ROWS = 5
-COLS = 9
+COLS = 5
 
 GUI = False
 
@@ -524,8 +524,7 @@ def get_pygame_input(screen, font, opts):
     global GUI
     opts = list(map(lambda num, opt: f"{num}: {opt}", range(1, len(opts)+1), opts))
 
-    print(GUI)
-    if GUI == False:
+    if not GUI:
         for opt in opts:
             print(opt)
         while True: 
@@ -549,6 +548,44 @@ def get_pygame_input(screen, font, opts):
                     screen.fill((255,255,255, 255), rect=rect)
                     pygame.display.flip()
                     return int(key)
+
+def display_text(screen, font, text):
+    display_text = font.render(text, True, (0,0,0))
+    textRect = display_text.get_rect()
+    textRect.bottomleft = (0, 480)
+    rect = pygame.rect.Rect(0, 480-24, 640, 24)
+    screen.fill((255,255,255, 255), rect=rect)
+    screen.blit(display_text, textRect)
+    pygame.display.flip()
+    pygame.event.clear()
+
+def get_pygame_number(screen, font, text):
+    global GUI
+
+    if not GUI:
+        print(text)
+        return int(input())
+    
+    display_text(screen, font, text)
+
+    running = True
+    num = 0
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if chr(event.key).isdigit():
+                    char = chr(event.key)
+                    num = 10*num + int(char)
+
+                    display_text(screen, font, text + " " + str(num))
+                elif event.key == pygame.K_BACKSPACE:
+                    num //= 10
+
+                    display_text(screen, font, text + " " + str(num))
+                elif event.key == pygame.K_RETURN and num != 0:
+                    return num
 
 def execute_player_move(screen, font, state, pieces):
     dragging = None
@@ -580,7 +617,7 @@ def execute_player_move(screen, font, state, pieces):
             if event.type == pygame.MOUSEMOTION and dragging:
                 dragging.drag(pygame.mouse.get_pos())
 
-def execute_random_move(state, _):
+def execute_random_move(state, evaluate, num):
     moves = state.get_all_moves()
     move = random.choice(list(moves))
     move.player = not move.player
@@ -655,6 +692,9 @@ def main():
                     algo = get_pygame_input(screen, font, algoTypes) - 1
                     if algo == 1:
                         difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance", "Complex heuristic", "Endgame BFS", "Cena Lucas"]) - 1
+                        num_parameter = get_pygame_number(screen, font, "Depth? (enter to confirm)")
+                    elif algo == 2:
+                        num_parameter = get_pygame_number(screen, font, "Seconds? (enter to confirm)")
                     else:
                         difficulty = 0
                     players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo])
@@ -677,7 +717,7 @@ def main():
                 pygame.display.flip()
                 state.boards = []
             if(not displayed):
-                print("Turn:", "White" if state.player else "Black")        
+                #print("Turn:", "White" if state.player else "Black")        
                 displayed = True
             if playerTypes[state.player] == 1:
                 state = execute_player_move(screen, font, state, pieces)

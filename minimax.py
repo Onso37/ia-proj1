@@ -17,7 +17,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func):
     if depth == 0:
         return evaluate_func(player, state), state
     
-    moves = state.get_all_moves()
+    moves = list(state.get_all_moves())
     counter = 0
     if maximizing:
         maxEval = -math.inf
@@ -74,7 +74,7 @@ def execute_minimax_move(state, evaluate_func):
     cuts = 0
     explored = 0
     startT = time.time()
-    _, move = minimax(state, 4, -math.inf, math.inf, True, state.player, evaluate_func)
+    _, move = minimax(state, 5, -math.inf, math.inf, True, state.player, evaluate_func)
     endT = time.time()
     totalT = endT-startT
     move.check_win()

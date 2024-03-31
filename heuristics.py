@@ -37,7 +37,7 @@ def heuristic2(player, state):
     for x in range(1, ROWS-1):
         for y in range(1, COLS-1):
             if x%2 == x%2:
-                if state.board[x][y] == player and (not state.can_be_captured((x, y))):
+                if state.board[x][y] == player:
                     score += 1
                 elif state.board[x][y] == (not player):
                     score -= 1
