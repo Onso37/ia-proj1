@@ -31,7 +31,7 @@ directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 displayed = False
 
 ROWS = 5
-COLS = 5
+COLS = 9
 
 GUI = False
 
@@ -333,12 +333,12 @@ class State:
             else:
                 #states.append(self)
                 state.check_win()
-                if level != old_level:
+                if abs(level-old_level) >= 2:
                     old_level = level
                     longest_moves = [state]
                 else:
                     longest_moves.append(state)
-                yield state
+                #yield state
             
             for dir in state.possible_moves_2(x, y):
                 moved_pos = vector_sum((x, y), dir)
@@ -376,7 +376,7 @@ class State:
                     state_copy.capture_move((x, y), moved_pos)
                     queue.append((state_copy, True, moved_pos, level+1))
                     #yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
-        #yield from longest_moves
+        yield from longest_moves
 
     def try_moves(self, x, y, in_sequence=False):
         global GUI
@@ -442,11 +442,14 @@ class State:
 
 
 
-    def get_available_captures(self):
+    def get_available_captures(self, only_longest=False):
         for x in range(ROWS):
             for y in range(COLS):
                 if self.board[x][y] == self.player:
-                    yield from self.try_moves(x, y)
+                    if only_longest:
+                        yield from self.try_moves_bfs(x, y)
+                    else:
+                        yield from self.try_moves(x, y)
     
     def get_available_non_captures(self):
         for x in range(ROWS):
@@ -454,11 +457,11 @@ class State:
                 if self.board[x][y] == self.player:
                     yield from self.try_non_captures(x, y)
     
-    def get_all_moves(self):
+    def get_all_moves(self, only_longest=False):
         if self.check_win() != 2:
             yield from []
         counter = 0
-        for move in self.get_available_captures():
+        for move in self.get_available_captures(only_longest):
             counter += 1
             yield deepcopy(move)
 
@@ -536,6 +539,7 @@ def get_pygame_input(screen, font, opts):
         display_text = font.render(opts[len(opts)-i-1], True, (0,0,0))
         textRect = display_text.get_rect()
         textRect.bottomleft = (0, 480-24*i)
+        screen.fill((255,255,255, 255), rect=pygame.rect.Rect(textRect.left, textRect.top, 640, textRect.height))
         screen.blit(display_text, textRect)
     pygame.display.flip()
     pygame.event.clear()
@@ -629,7 +633,6 @@ def main():
 
 
     useGUI = get_pygame_input(None, None, ["With GUI", "Without GUI"])
-    print(useGUI)
     if (useGUI == 1):
         GUI = True
     
@@ -686,6 +689,7 @@ def main():
             algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
             statistics = [None, show_minimax_statistics, show_mcts_statistics]
             difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6, heuristic7]
+            prune_shorts = 1
             for i in range(2):
                 if playerTypes[i] == 2:
                     algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
@@ -693,11 +697,13 @@ def main():
                     if algo == 1:
                         difficulty = get_pygame_input(screen, font, ["Simple heuristic", "Heurstic with positions", "Heuristic with chunks", "Tie avoidance", "Complex heuristic", "Endgame BFS", "Cena Lucas"]) - 1
                         num_parameter = get_pygame_number(screen, font, "Depth? (enter to confirm)")
+                        prune_shorts = get_pygame_input(screen, font, ["Process all moves", "Ignore short moves"])
                     elif algo == 2:
+                        difficulty = 0
                         num_parameter = get_pygame_number(screen, font, "Seconds? (enter to confirm)")
                     else:
                         difficulty = 0
-                    players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter)
+                    players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts)
 
         while running and state.winner == 2:
             if GUI:
@@ -707,7 +713,7 @@ def main():
                         pieces = update_sprite(board, screen, ROWS, COLS)
                         pieces.update()
                         pieces.draw(screen)
-                        players[not state.player].show_statistics(screen, font)
+                        players[not state.player].show_statistics(screen, font, False)
                         pygame.display.flip()
                         pygame_get_enter()
                 draw_bg(screen)
@@ -724,7 +730,7 @@ def main():
             elif playerTypes[state.player] == 2:
                 state = players[state.player].move(state)
                 if GUI:
-                    players[not state.player].show_statistics(screen, font)
+                    players[not state.player].show_statistics(screen, font, True)
                 displayed = False
                 if GUI:
                     pygame_get_enter()

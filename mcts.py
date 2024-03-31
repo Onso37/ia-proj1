@@ -98,8 +98,11 @@ def monte_carlo_tree_search(root, time_limit):
 
     return root.best_child()
 
-def show_mcts_statistics(screen, font):
-    display_text = font.render(f"{wins} win, {simulations} playouts", True, (0,0,0))
+def show_mcts_statistics(screen, font, first):
+    text = f"{wins} win, {simulations} playouts"
+    if first:
+        print(text)
+    display_text = font.render(text, True, (0,0,0))
     textRect = display_text.get_rect()
     textRect.topleft = (0, 0)
     screen.blit(display_text, textRect)
