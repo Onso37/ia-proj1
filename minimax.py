@@ -28,7 +28,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func, only_l
         maxEval = -math.inf
         best_move = None
         for move in moves:
-            move.player = not move.player
+            move.player = 1 - move.player
             counter += 1
             eval, _ = minimax(move, depth-1, alpha, beta, False, player, evaluate_func, only_longest)
             if (best_move == None or eval > maxEval):
@@ -50,7 +50,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func, only_l
         minEval = math.inf
         best_move = None
         for move in moves:
-            move.player = not move.player
+            move.player = 1 - move.player
             counter += 1
             eval, _ = minimax(move, depth-1, alpha, beta, True, player, evaluate_func, only_longest)
             if (best_move == None or eval < minEval):
