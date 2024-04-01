@@ -5,7 +5,7 @@ import time
 from Piece import *
 from mcts import execute_mcts_move, show_mcts_statistics
 from AIPlayer import *
-from heuristics import *
+from benchmark_h import *
 import random
 import functools 
 from minimax import execute_minimax_move, show_minimax_statistics
@@ -31,7 +31,7 @@ directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 displayed = False
 
 ROWS = 5
-COLS = 9
+COLS = 5
 
 GUI = False
 
@@ -632,8 +632,21 @@ def execute_random_move(state, evaluate, num):
 
 # define a main function
 def main():
-    global GUI
+    global GUI, ROWS, COLS
 
+
+    variant = get_pygame_input(None, None, ["Telo (3x3)", "Dimy (5x5)", "Tsivy (9x5)"])
+    if variant == 1:
+        ROWS = 3
+        COLS = 3
+    elif variant == 2:
+        ROWS = 5
+        COLS = 5
+    elif variant == 3:
+        ROWS = 5
+        COLS = 9
+    depth_b = get_pygame_number(None, None, "Depth for black?")
+    depth_w = get_pygame_number(None, None, "Depth for white?")
 
     GUI = False
     
@@ -697,7 +710,7 @@ def main():
                             algo = 1
                             if algo == 1:
                                 difficulty = black_h if i == 0 else white_h
-                                num_parameter = 3
+                                num_parameter = depth_b if i == 0 else depth_w
                                 prune_shorts = 1
                             elif algo == 2:
                                 difficulty = 0

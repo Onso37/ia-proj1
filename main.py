@@ -636,9 +636,19 @@ def execute_random_move(state, evaluate, num):
 
 # define a main function
 def main():
-    global GUI
+    global GUI, ROWS, COLS
 
 
+    variant = get_pygame_input(None, None, ["Telo (3x3)", "Dimy (5x5)", "Tsivy (9x5)"])
+    if variant == 1:
+        ROWS = 3
+        COLS = 3
+    elif variant == 2:
+        ROWS = 5
+        COLS = 5
+    elif variant == 3:
+        ROWS = 5
+        COLS = 9
     useGUI = get_pygame_input(None, None, ["With GUI", "Without GUI"])
     if (useGUI == 1):
         GUI = True

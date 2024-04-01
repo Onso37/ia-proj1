@@ -1,5 +1,5 @@
 import numpy
-from main import ROWS, COLS
+from benchmark import ROWS, COLS
 import math
 from collections import deque
 
