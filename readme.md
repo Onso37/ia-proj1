@@ -5,6 +5,14 @@ You need to install memory profiler to run utility commands for testing and to r
 ```py
 pip install memory-profiler
 ``` 
+Similarly, you must also install pygame and numpy.
+To run the game with the memory profiler and afterwards view the plot of memory usage, use:
+```sh
+mprof run main.py
+mprof plot
+```
+
+To run a benchmark of all heuristics against one another, run benchmark.py instead.
 
 ### To play the game
 Run the following command:
