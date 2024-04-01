@@ -598,7 +598,9 @@ def get_pygame_number(screen, font, text):
 def execute_player_move(screen, font, state, pieces):
     dragging = None
     running = True
+
     while running:
+
         draw_bg(screen)
         #pieces = update_sprite(state,screen)
         pieces.update()
@@ -624,6 +626,8 @@ def execute_player_move(screen, font, state, pieces):
                 return state
             if event.type == pygame.MOUSEMOTION and dragging:
                 dragging.drag(pygame.mouse.get_pos())
+            display_player_turn(screen, font, state.player)
+
 
 def execute_random_move(state, evaluate, num):
     moves = state.get_all_moves()
