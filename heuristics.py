@@ -109,7 +109,7 @@ def bfs(board, sources, player):
         
 
 def heuristic3(player, state):
-    return material(player, state) + tactical(player, state) + strategic(player, state)
+    return material(player, state) + tactical(player, state) - strategic(player, state)
 
 def heuristic4(player, state):
     winner = state.check_win()
