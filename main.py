@@ -1,13 +1,11 @@
 # import the pygame module, so you can use it
 import pygame
 import numpy
-import time
 from Piece import *
 from mcts import execute_mcts_move, show_mcts_statistics
 from AIPlayer import *
 from heuristics import *
 import random
-import functools 
 from minimax import execute_minimax_move, show_minimax_statistics
 from copy import deepcopy
 from collections import deque

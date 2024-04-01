@@ -1,5 +1,3 @@
-import numpy
-import math
 from collections import deque
 
 left = (0,-1)

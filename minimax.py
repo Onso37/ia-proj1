@@ -2,9 +2,7 @@ import math
 import random
 import time
 import pygame
-import numpy
 from Piece import update_sprite
-import collections
 from memory_profiler import profile
 
 cuts = 0
