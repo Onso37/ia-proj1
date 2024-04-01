@@ -151,7 +151,7 @@ class State:
                 neighbour2=neighbour[1]
                 if(not self.in_bounds(neighbour1[0],neighbour1[1]) or not self.in_bounds(neighbour2[0],neighbour2[1])):
                     continue
-                enemy=not self.player
+                enemy= 1 -  self.player
                 if((self.board[neighbour1[0]][neighbour1[1]] == enemy and self.board[neighbour2[0]][neighbour2[1]] == space) or (self.board[neighbour2[0]][neighbour2[1]] == enemy and self.board[neighbour1[0]][neighbour1[1]] == space)):
                     return True
         return False
@@ -173,10 +173,10 @@ class State:
         approach = vector_sum(move,vector)
         
         if ((withdrawal[0] >= 0 and withdrawal[0] < ROWS) and (withdrawal[1] >= 0 and withdrawal[1] < COLS)):
-            if(self.board[withdrawal[0]][withdrawal[1]] == (not self.player) and self.board[withdrawal[0]][withdrawal[1]] != space):
+            if(self.board[withdrawal[0]][withdrawal[1]] == (1 - self.player) and self.board[withdrawal[0]][withdrawal[1]] != space):
                 captures[capture_by_withdrawal] = True
         if ((approach[0] >= 0 and approach[0] < ROWS) and (approach[1] >= 0 and approach[1] < COLS) and self.board[approach[0]][approach[1]] != space):
-            if( self.board[approach[0]][approach[1]] == (not self.player) ):
+            if( self.board[approach[0]][approach[1]] == (1 - self.player) ):
                 captures[capture_by_approach] = True
         return captures
         
@@ -279,12 +279,12 @@ class State:
                     else:
                         state_copy.moved_pos = []
                         #state_copy.capture = no_capture
-                        state_copy.player = not self.player
+                        state_copy.player = 1 - self.player
                         state_copy.update_initial_moves()
                 else:
                     print("No more moves for succesive capture")
                     #state_copy.capture = no_capture
-                    state_copy.player = not self.player
+                    state_copy.player = 1 - self.player
                     state_copy.update_initial_moves()
                     state_copy.moved_pos = []
             else:
@@ -296,11 +296,11 @@ class State:
                         print("Invalid Move during successive capture")
                         return -1
                     print("First movement")
-                    state_copy.player = not self.player
+                    state_copy.player = 1 - self.player
                     
                 elif ((self.moved_pos == []) and (state_copy.available_moves != [] or state_copy.available_moves==[])):
                     print("First movement")
-                    state_copy.player = not self.player
+                    state_copy.player = 1 - self.player
                 elif (self.capture != no_capture):
                     print("Invalid Move")
                     return -1
@@ -351,7 +351,7 @@ class State:
                 front_x, front_y = vector_sum(moved_pos, dir)
                 back_x, back_y = vector_sub((x, y), dir)
 
-                if state.in_bounds(front_x, front_y) and state.board[front_x][front_y] == (not state.player):
+                if state.in_bounds(front_x, front_y) and state.board[front_x][front_y] == (1 - state.player):
                     state_copy = deepcopy(state)
                     state_copy.capture = capture_by_approach
                     state_copy.last_dir = dir
@@ -364,7 +364,7 @@ class State:
                     queue.append((state_copy, True, moved_pos, level+1))
                     #yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
 
-                if self.in_bounds(back_x, back_y) and state.board[back_x][back_y] == (not state.player):
+                if self.in_bounds(back_x, back_y) and state.board[back_x][back_y] == (1 - state.player):
                     state_copy = deepcopy(state)
                     state_copy.capture = capture_by_withdrawal
                     state_copy.last_dir = dir
@@ -400,7 +400,7 @@ class State:
             front_x, front_y = vector_sum(moved_pos, dir)
             back_x, back_y = vector_sub((x, y), dir)
 
-            if self.in_bounds(front_x, front_y) and self.board[front_x][front_y] == (not self.player):
+            if self.in_bounds(front_x, front_y) and self.board[front_x][front_y] == (1 - self.player):
                 state_copy = deepcopy(self)
                 state_copy.capture = capture_by_approach
                 state_copy.last_dir = dir
@@ -412,7 +412,7 @@ class State:
                 state_copy.capture_move((x, y), moved_pos)
                 yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
 
-            if self.in_bounds(back_x, back_y) and self.board[back_x][back_y] == (not self.player):
+            if self.in_bounds(back_x, back_y) and self.board[back_x][back_y] == (1 - self.player):
                 state_copy = deepcopy(self)
                 state_copy.capture = capture_by_withdrawal
                 state_copy.last_dir = dir
@@ -628,7 +628,7 @@ def execute_player_move(screen, font, state, pieces):
 def execute_random_move(state, evaluate, num):
     moves = state.get_all_moves()
     move = random.choice(list(moves))
-    move.player = not move.player
+    move.player = 1 - move.player
     return move
 
 # define a main function
@@ -719,7 +719,7 @@ def main():
                         pieces = update_sprite(board, screen, ROWS, COLS)
                         pieces.update()
                         pieces.draw(screen)
-                        players[not state.player].show_statistics(screen, font, False)
+                        players[1 - state.player].show_statistics(screen, font, False)
                         pygame.display.flip()
                         pygame_get_enter()
                 draw_bg(screen)
@@ -741,7 +741,7 @@ def main():
             elif playerTypes[state.player] == 2:
                 state = players[state.player].move(state)
                 if GUI:
-                    players[not state.player].show_statistics(screen, font, True)
+                    players[1 - state.player].show_statistics(screen, font, True)
                 displayed = False
                 if GUI:
                     pygame_get_enter()

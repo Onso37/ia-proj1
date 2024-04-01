@@ -40,7 +40,7 @@ class Node:
         move = self.unused.pop()  
         new_node = Node(move)
         new_node.parent = self
-        new_node.state.player = not new_node.state.player
+        new_node.state.player = 1 -  new_node.state.player
         self.children.append(new_node)
         explored += 1
         return new_node

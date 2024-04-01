@@ -34,19 +34,19 @@ def tactical(player, state):
             if x%2 == x%2:
                 if state.board[x][y] == player:
                     score += 1
-                elif state.board[x][y] == (not player):
+                elif state.board[x][y] == ((1-player)):
                     score -= 1
     for x in range(0, ROWS, ROWS-1):
         for y in range(COLS):
             if state.board[x][y] == player:
                 score -= 0.5
-            elif state.board[x][y] == (not player):
+            elif state.board[x][y] == ((1-player)):
                 score += 0.5
     for x in range(ROWS):
         for y in range(0, COLS, COLS-1):
             if state.board[x][y] == player:
                 score -= 0.5
-            elif state.board[x][y] == (not player):
+            elif state.board[x][y] == ((1-player)):
                 score += 0.5
     
     return score
@@ -96,7 +96,7 @@ def bfs(board, sources, player):
 
     while len(queue) > 0:
         (x, y), value = queue.popleft()
-        if board[x][y] == (not player):
+        if board[x][y] == ((1-player)):
             score += value if value >= 3 else 0
         board[x][y] = 3
         for i in range(4):
@@ -129,7 +129,7 @@ def heuristic5(player, state):
             if state.board[x][y] == player and (not state.can_be_captured((x, y))):
                 for nx in [-1,1]:
                     for ny in [-1,1]:
-                        if in_bounds((nx, ny)) and state.board[nx][ny] == (not player):
+                        if in_bounds((nx, ny)) and state.board[nx][ny] == ((1-player)):
                             score += 1
     
     for x in range(0, ROWS, ROWS-1):
@@ -138,7 +138,7 @@ def heuristic5(player, state):
         else:
             offset = -1
         for y in range(1, COLS-1):
-            if state.board[x][y] == (not player) and state.board[x+offset][y] == player:
+            if state.board[x][y] == ((1-player)) and state.board[x+offset][y] == player:
                 score += 1
     for x in range(1, ROWS-1):
         for y in range(0, COLS, COLS-1):
@@ -146,7 +146,7 @@ def heuristic5(player, state):
                 offset = 1
             else:
                 offset = -1
-            if state.board[x][y] == (not player) and state.board[x][y+offset] == player:
+            if state.board[x][y] == ((1-player)) and state.board[x][y+offset] == player:
                 score += 1
     
     return heuristic4(player, state) + 0.5*score
@@ -165,7 +165,7 @@ def heuristic6(player, state):
         sources = []
         for x in range(ROWS):
             for y in range(COLS):
-                if state.board[x][y] == (not player):
+                if state.board[x][y] == ((1-player)):
                     sources.append((x, y))
         score = bfs(state.board.copy(), sources, player)
         prev += my_pieces*min(ROWS, COLS)
@@ -177,7 +177,7 @@ def heuristic7(player, state):
     winner = state.check_win()
     if winner == player:
         return 999999999
-    elif winner == (not player):       # or winner == -1:
+    elif winner == ((1-player)):       # or winner == -1:
         return -999999999
     else:
         score = 0
@@ -192,7 +192,7 @@ def heuristic7(player, state):
             sources = []
             for x in range(ROWS):
                 for y in range(COLS):
-                    if state.board[x][y] == (not player):
+                    if state.board[x][y] == ((1-player)):
                         sources.append((x, y))
             score = bfs(state.board.copy(), sources, player)
             score -= my_pieces*min(ROWS, COLS)
