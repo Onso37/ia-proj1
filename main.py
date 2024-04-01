@@ -59,6 +59,8 @@ def is_same_orientation(vector1, vector2):
 # Game State Class
 class State:
     def __init__(self):
+        self.ROWS = ROWS
+        self.COLS = COLS
         self.board = numpy.zeros((ROWS,COLS))
         self.player = 1
         self.capture = no_capture
@@ -711,7 +713,7 @@ def main():
         if first:
             algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
             statistics = [None, show_minimax_statistics, show_mcts_statistics]
-            difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6, heuristic7]
+            difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6]
             prune_shorts = 1
             ab_cuts = 0
             for i in range(2):
@@ -719,7 +721,7 @@ def main():
                     algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
                     algo = get_pygame_input(screen, font, algoTypes) - 1
                     if algo == 1:
-                        difficulty = get_pygame_input(screen, font, ["Just material", "Material + tactical", "Material + tactical + strategic", "Terminal return values", "Complex heuristic", "Endgame BFS", "Cena Lucas"]) - 1
+                        difficulty = get_pygame_input(screen, font, ["Just material", "Material + tactical", "Terminal return values", "Complex heuristic", "Endgame BFS", "Weighted features"]) - 1
                         num_parameter = get_pygame_number(screen, font, "Depth? (enter to confirm)")
                         ab_cuts = get_pygame_input(screen, font, ["Don't use alpha-beta pruning", "Use alpha-beta pruning"]) - 1 
                         prune_shorts = get_pygame_input(screen, font, ["Process all moves", "Ignore short moves"])

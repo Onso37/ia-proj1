@@ -5,7 +5,7 @@ import time
 from Piece import *
 from mcts import execute_mcts_move, show_mcts_statistics
 from AIPlayer import *
-from benchmark_h import *
+from heuristics import *
 import random
 import functools 
 from minimax import execute_minimax_move, show_minimax_statistics
@@ -56,6 +56,8 @@ def is_same_orientation(vector1, vector2):
 
 class State:
     def __init__(self):
+        self.ROWS = ROWS
+        self.COLS = COLS
         self.board = numpy.zeros((ROWS,COLS))
         self.player = 1
         self.capture = no_capture
@@ -654,8 +656,8 @@ def main():
     first = True
     players = [None, None]
     playerTypes = None
-    for white_h in range(7):
-        for black_h in range(7):
+    for white_h in range(6):
+        for black_h in range(6):
             print(f"White is heuristic{white_h+1}, black is heuristic{black_h+1}")
             for _ in range(games):
                 state = State()
@@ -701,7 +703,7 @@ def main():
                 if first:
                     algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
                     statistics = [None, show_minimax_statistics, show_mcts_statistics]
-                    difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6, heuristic7]
+                    difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6]
                     prune_shorts = 1
                     for i in range(2):
                         if playerTypes[i] == 2:
@@ -716,7 +718,7 @@ def main():
                                 num_parameter = get_pygame_number(screen, font, "Seconds? (enter to confirm)")
                             else:
                                 difficulty = 0
-                            players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts)
+                            players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts, True)
 
                 moves = 0
                 while running and state.winner == 2:
