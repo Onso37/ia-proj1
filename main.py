@@ -562,7 +562,11 @@ def display_text(screen, font, text):
     screen.blit(display_text, textRect)
     pygame.display.flip()
     pygame.event.clear()
-
+def display_player_turn(screen, font, player):
+    if player == 1:
+        display_text(screen, font, "White's turn")
+    else:
+        display_text(screen, font, "Black's turn")
 def get_pygame_number(screen, font, text):
     global GUI
 
@@ -706,6 +710,8 @@ def main():
                     players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts)
 
         while running and state.winner == 2:
+            
+
             if GUI:
                 if (len(state.boards) > 1):
                     for board in state.boards:
@@ -717,16 +723,21 @@ def main():
                         pygame.display.flip()
                         pygame_get_enter()
                 draw_bg(screen)
-                pieces = update_sprite(state.board, screen, ROWS, COLS,state)
+                if playerTypes[state.player] == 1:
+                    pieces = update_sprite(state.board, screen, ROWS, COLS,state)
+                else:
+                    pieces = update_sprite(state.board, screen, ROWS, COLS)
                 pieces.update()
                 pieces.draw(screen)
                 pygame.display.flip()
+                display_player_turn(screen, font, state.player)
                 state.boards = []
             if(not displayed):
                 #print("Turn:", "White" if state.player else "Black")        
                 displayed = True
             if playerTypes[state.player] == 1:
                 state = execute_player_move(screen, font, state, pieces)
+
             elif playerTypes[state.player] == 2:
                 state = players[state.player].move(state)
                 if GUI:
@@ -734,6 +745,9 @@ def main():
                 displayed = False
                 if GUI:
                     pygame_get_enter()
+
+
+                    
         announce_winner(state.winner,screen,font)
         first = False
 
