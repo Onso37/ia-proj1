@@ -605,7 +605,6 @@ def execute_player_move(screen, font, state, pieces):
         #pieces = update_sprite(state,screen)
         pieces.update()
         pieces.draw(screen)
-        pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
