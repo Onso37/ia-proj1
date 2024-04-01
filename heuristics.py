@@ -14,12 +14,16 @@ down_right = (1,1)
 directions = [left, right, up, down, up_left, up_right, down_left, down_right]
 
 def material(player, state):
+    """"Returns the material advantage for a player in a given state. Material advantage is defined as the difference between
+    how many pieces the player and their opponent have."""
     if player == 1:
         return state.white_pieces - state.black_pieces
     else:
         return state.black_pieces - state.white_pieces
 
 def tactical(player, state):
+    """Returns the tactical advantage for a player in a given state. Tactical advantage is defined as having pieces in good 
+    positions, and the opponent having pieces in bad positions."""
     score = 0
 
     for x in range(ROWS):
@@ -52,6 +56,7 @@ def tactical(player, state):
     return score
 
 def strategic(player, state):
+    """Returns the strategid disadvantage of a player. Big groups of pieces that are easily captured add to this score."""
     chunks = 0
     board = state.board.copy()
     for x in range(ROWS):
@@ -64,21 +69,26 @@ def strategic(player, state):
     return chunks
 
 def heuristic1(player, state):
+    """First and simplest heuristic. Only uses material advantage."""
     return material(player, state)
 
 def in_bounds(position):
+    """Checks if a piece in a position (x,y) is in the bounds of the board."""
     x, y = position
     return not (x < 0 or x >= ROWS or y < 0 or y >= COLS)
 
 def generate_neighbors(position):
+    """Generates the neighboring positions (up to 2 spaces away) of a given position."""
     for dir in directions:
         temp = (position[0] + dir[0], position[1] + dir[1])
         yield [temp, (temp[0] + dir[0], temp[1] + dir[1])]
 
 def heuristic2(player, state):
+    """Second heuristic. Uses material and tactical advantage."""
     return material(player, state) + tactical(player, state)
 
 def dfs(board, player, x, y, count=0):
+    """Runs a DFS over a group of the player's pieces. Returns the size of the group."""
     board[x][y] = 2
     for i in range(4):
         new_x = x+directions[i][0]
@@ -89,6 +99,7 @@ def dfs(board, player, x, y, count=0):
     return count
 
 def bfs(board, sources, player):
+    """Runs a BFS over the board, starting from the player's pieces. The score is based on how far the player's pieces are from the opponent."""
     score = 0
     queue = deque()
     for source in sources:
@@ -109,9 +120,11 @@ def bfs(board, sources, player):
         
 
 def heuristic3(player, state):
+    """Third heuristic. Takes into account material, tactical and strategic advantage."""
     return material(player, state) + tactical(player, state) - strategic(player, state)
 
 def heuristic4(player, state):
+    """Fourth heuristic. Same as the third, but with special return values for terminal nodes."""
     winner = state.check_win()
     if winner == player:
         return 9999999
@@ -123,6 +136,8 @@ def heuristic4(player, state):
         return heuristic3(player, state)
     
 def heuristic5(player, state):
+    """Fifth heuristic. Same as the fourth, but takes into account specific situations where enemy pieces are surrounded.
+    These situations add value to the state."""
     score = 0
     for x in range(ROWS):
         for y in range(1 - x%2, COLS, 2):
@@ -152,6 +167,8 @@ def heuristic5(player, state):
     return heuristic4(player, state) + 0.5*score
 
 def heuristic6(player, state):
+    """Sixth heuristic. Same as the fifth, but uses a BFS in the lategame, in case the player has the material advantage, to
+    reward aggressive behavior."""
     score = 0
     prev = heuristic5(player, state)
     if player == 1:
@@ -174,6 +191,7 @@ def heuristic6(player, state):
 
 
 def heuristic7(player, state):
+    """Seventh heuristic. Is a weighted combination of what we found to be the most important features in previous heuristics."""
     winner = state.check_win()
     if winner == player:
         return 999999999

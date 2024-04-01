@@ -9,7 +9,10 @@ explored = 0
 wins=0
 
 class Node:
+    """Node class used in MCTS."""
+
     def __init__(self, state):
+        """Creates a new mode from a given state and initializes its list of unused moves."""
         self.state = state
         self.children = []
         self.playouts = 0
@@ -18,19 +21,9 @@ class Node:
         self.generator = self.state.get_all_moves()
         self.fully_expanded = False
         self.unused = list(self.generator)
-
-    """def expand(self):
-        child = next(self.generator, None)
-        if (child):
-            new_node = Node(child)
-            new_node.parent = self
-            new_node.state.player = not new_node.state.player
-            self.children.append(new_node)
-            return new_node
-        else:
-            self.fully_expanded = True"""
     
     def expand(self):
+        """Removes a random move from the unused list and returns it. If it is empty, fully_expanded is set to True on the Node object."""
         global explored
         if len(self.unused) == 0:
             self.fully_expanded = True
@@ -46,15 +39,18 @@ class Node:
         return new_node
 
     def addChild(self, child):
+        """Adds a child node to the object."""
         self.children.append(child)
 
     def best_child(self, c_param=0.1):
+        """Returns the best child of the node according to the UCT formula."""
         choices_weights = [(c.wins / c.playouts) + c_param * np.sqrt((np.log(self.playouts) / c.playouts)) for c in self.children]
         return self.children[np.argmax(choices_weights)]
 
 
 
 def traverse(node):
+    """"Traverses the best children of the tree until a leaf is found. When a leaf node is found, it is expanded and the resulting child is selected."""
     curr = node
     while curr.state.winner == 2:
         if not curr.fully_expanded:
@@ -68,6 +64,7 @@ def traverse(node):
     return curr
 
 def rollout(node):
+    """Performs a playout from a given node, picking random moves until a terminal node is reached."""
     global simulations
     curr = node.state
     while curr.winner == 2:
@@ -79,6 +76,7 @@ def rollout(node):
     return curr.winner
 
 def backpropagate(leaf, simulation_result, player):
+    """Propagates the simulation result back to the root. The "player" argument is the player who is playing at the root."""
     global wins
     leaf.playouts += 1
     if simulation_result == player:
@@ -89,6 +87,7 @@ def backpropagate(leaf, simulation_result, player):
 
 
 def monte_carlo_tree_search(root, time_limit):
+    """Uses the MCTS algorithm to find a move, running simulations until the time limit is reached."""
     player = root.state.player
     startT = time.time()
     while (time.time() - startT < time_limit):
@@ -99,6 +98,7 @@ def monte_carlo_tree_search(root, time_limit):
     return root.best_child()
 
 def show_mcts_statistics(screen, font, first):
+    """Shows the statistics from the last MCTS execution: number of wins and number of total simulations."""
     text = f"{wins} win, {simulations} playouts"
     if first:
         print(text)
@@ -109,6 +109,7 @@ def show_mcts_statistics(screen, font, first):
     pygame.display.flip()
 
 def execute_mcts_move(state, _, seconds):
+    """Executes a MCTS move from a given state. After 'seconds' seconds, the algorithm will stop creating new simulations."""
     global simulations, wins
     simulations = 0
     wins = 0

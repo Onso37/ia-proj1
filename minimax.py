@@ -12,6 +12,8 @@ explored = 0
 totalT = 0.0
 
 def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func, only_longest):
+    """Runs the Minimax algorithm from a given state and returns the best evaluation and corresponding state.
+    Minimax parameters such as alpha, beta and depth are passed through recursion."""
     global cuts, explored
     explored +=  1
     winner = state.check_win()
@@ -69,6 +71,7 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func, only_l
         return minEval, best_move
 
 def show_minimax_statistics(screen, font, first):
+    """"Displays the statistics tied to the last execution of Minimax: the number of A-B cuts, how many nodes were explored, and execution time."""
     text = f"{cuts} A-B cuts, {explored} explored, {totalT:.3f} s"
     if first:
         print(text)
@@ -79,6 +82,7 @@ def show_minimax_statistics(screen, font, first):
     pygame.display.flip()
 
 def execute_minimax_move(state, evaluate_func, depth, only_longest=False):
+    """Executes a minimax move from a given state with a given heuristic. If only_longest is set to true, the maximizing player will ignore short sequences."""
     global cuts, totalT, explored
     cuts = 0
     explored = 0
