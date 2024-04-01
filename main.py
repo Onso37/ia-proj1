@@ -697,6 +697,7 @@ def main():
             statistics = [None, show_minimax_statistics, show_mcts_statistics]
             difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6, heuristic7]
             prune_shorts = 1
+            ab_cuts = 0
             for i in range(2):
                 if playerTypes[i] == 2:
                     algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
@@ -704,13 +705,15 @@ def main():
                     if algo == 1:
                         difficulty = get_pygame_input(screen, font, ["Just material", "Material + tactical", "Material + tactical + strategic", "Terminal return values", "Complex heuristic", "Endgame BFS", "Cena Lucas"]) - 1
                         num_parameter = get_pygame_number(screen, font, "Depth? (enter to confirm)")
+                        ab_cuts = get_pygame_input(screen, font, ["Don't use alpha-beta pruning", "Use alpha-beta pruning"]) - 1 
                         prune_shorts = get_pygame_input(screen, font, ["Process all moves", "Ignore short moves"])
                     elif algo == 2:
                         difficulty = 0
                         num_parameter = get_pygame_number(screen, font, "Seconds? (enter to confirm)")
+                        ab_cuts = 0
                     else:
                         difficulty = 0
-                    players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts)
+                    players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts,ab_cuts)
 
         while running and state.winner == 2:
             

@@ -108,7 +108,7 @@ def show_mcts_statistics(screen, font, first):
     screen.blit(display_text, textRect)
     pygame.display.flip()
 
-def execute_mcts_move(state, _, seconds):
+def execute_mcts_move(state, _, seconds,__,___):
     global simulations, wins
     simulations = 0
     wins = 0

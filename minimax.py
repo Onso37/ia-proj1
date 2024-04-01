@@ -11,7 +11,7 @@ cuts = 0
 explored = 0
 totalT = 0.0
 
-def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func, only_longest):
+def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func, only_longest,ab_cut):
     global cuts, explored
     explored +=  1
     winner = state.check_win()
@@ -30,17 +30,18 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func, only_l
         for move in moves:
             move.player = 1 - move.player
             counter += 1
-            eval, _ = minimax(move, depth-1, alpha, beta, False, player, evaluate_func, only_longest)
+            eval, _ = minimax(move, depth-1, alpha, beta, False, player, evaluate_func, only_longest,ab_cut)
             if (best_move == None or eval > maxEval):
                 maxEval = eval
                 best_move = move
                 #if best_move == None or random.randint(0, 1):
                 #    best_move = move
-            alpha = max(alpha, maxEval)
-
-            if beta <= alpha:
-                cuts += 1
-                break
+            
+            if(ab_cut):
+                alpha = max(alpha, maxEval)
+                if beta <= alpha:
+                    cuts += 1
+                    break
         
         if counter == 0:
             return evaluate_func(player, state), state
@@ -52,17 +53,17 @@ def minimax(state, depth, alpha, beta, maximizing, player, evaluate_func, only_l
         for move in moves:
             move.player = 1 - move.player
             counter += 1
-            eval, _ = minimax(move, depth-1, alpha, beta, True, player, evaluate_func, only_longest)
+            eval, _ = minimax(move, depth-1, alpha, beta, True, player, evaluate_func, only_longest,ab_cut)
             if (best_move == None or eval < minEval):
                 minEval = eval
                 best_move = move
                 #if best_move == -1 or random.randint(0, 1):
                 #    best_move = move
-            beta = min(beta, minEval)
-
-            if beta <= alpha:
-                cuts += 1
-                break
+            if ab_cut:
+                beta = min(beta, minEval)
+                if beta <= alpha:
+                    cuts += 1
+                    break
 
         if counter == 0:
             return evaluate_func(player, state), state
@@ -78,12 +79,12 @@ def show_minimax_statistics(screen, font, first):
     screen.blit(display_text, textRect)
     pygame.display.flip()
 
-def execute_minimax_move(state, evaluate_func, depth, only_longest=False):
+def execute_minimax_move(state, evaluate_func, depth, only_longest=False,ab_cut=False):
     global cuts, totalT, explored
     cuts = 0
     explored = 0
     startT = time.time()
-    _, move = minimax(state, depth, -math.inf, math.inf, True, state.player, evaluate_func, only_longest)
+    _, move = minimax(state, depth, -math.inf, math.inf, True, state.player, evaluate_func, only_longest,ab_cut)
     endT = time.time()
     totalT = endT-startT
     move.check_win()
