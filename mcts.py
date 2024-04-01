@@ -6,6 +6,7 @@ from memory_profiler import profile
 
 simulations = 0
 explored = 0
+wins=0
 
 class Node:
     def __init__(self, state):
@@ -48,7 +49,7 @@ class Node:
         self.children.append(child)
 
     def best_child(self, c_param=0.1):
-        choices_weights = [(c.wins / c.playouts) + c_param * np.sqrt((2 * np.log(self.playouts) / c.playouts)) for c in self.children]
+        choices_weights = [(c.wins / c.playouts) + c_param * np.sqrt((np.log(self.playouts) / c.playouts)) for c in self.children]
         return self.children[np.argmax(choices_weights)]
 
 
@@ -78,28 +79,37 @@ def rollout(node):
     return curr.winner
 
 def backpropagate(leaf, simulation_result, player):
+    global wins
     leaf.playouts += 1
     if simulation_result == player:
+        wins += 1
         leaf.wins += 1
     if (leaf.parent):
         backpropagate(leaf.parent, simulation_result, player)
 
 
 def monte_carlo_tree_search(root, time_limit):
+    player = root.state.player
     startT = time.time()
     while (time.time() - startT < time_limit):
         leaf = traverse(root)
         simulation_result = rollout(leaf)
-        backpropagate(leaf, simulation_result, root.state.player)
+        backpropagate(leaf, simulation_result, player)
 
     return root.best_child()
 
-def show_mcts_statistics(screen, font):
-    display_text = font.render(f"{explored} explored, {simulations} playouts", True, (0,0,0))
+def show_mcts_statistics(screen, font, first):
+    text = f"{wins} win, {simulations} playouts"
+    if first:
+        print(text)
+    display_text = font.render(text, True, (0,0,0))
     textRect = display_text.get_rect()
     textRect.topleft = (0, 0)
     screen.blit(display_text, textRect)
     pygame.display.flip()
 
-def execute_mcts_move(state, _):
-    return monte_carlo_tree_search(Node(state), 5).state
+def execute_mcts_move(state, _, seconds):
+    global simulations, wins
+    simulations = 0
+    wins = 0
+    return monte_carlo_tree_search(Node(state), seconds).state

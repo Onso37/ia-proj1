@@ -496,7 +496,7 @@ def draw_motif(screen, x, y, size):
     pygame.draw.line(screen, (0, 0, 0), (x, y), (x+size, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size), (x+size, y))
 
-def announce_winner(winner,screen,font):
+def announce_winner(winner,screen,font,moves):
     global GUI
 
     string_winner=""
@@ -506,6 +506,9 @@ def announce_winner(winner,screen,font):
         string_winner="Black wins"
     else:
         string_winner="Draw"
+    
+    string_winner += f" in {moves} moves"
+
     if GUI:
         display_text = font.render(string_winner, True, (0,0,0))
         textRect = display_text.get_rect()
@@ -632,110 +635,109 @@ def main():
     global GUI
 
 
-    useGUI = get_pygame_input(None, None, ["With GUI", "Without GUI"])
-    if (useGUI == 1):
-        GUI = True
+    GUI = False
     
-    if not GUI:
-        games = int(input("How many games?"))
-    else:
-        games = 1
-
+    games = 1
+    
     first = True
     players = [None, None]
     playerTypes = None
-    for _ in range(games):
-        state = State()
-        if GUI:
-            #test = state.get_all_moves()
+    for white_h in range(7):
+        for black_h in range(7):
+            print(f"White is heuristic{white_h+1}, black is heuristic{black_h+1}")
+            for _ in range(games):
+                state = State()
+                if GUI:
+                    #test = state.get_all_moves()
 
-            pygame.init()
-            pygame.display.set_caption("Fanorona")
-            font = pygame.font.Font(pygame.font.get_default_font(), 24)
-            
-            # create a surface on screen that has the size of 640 x 480
-            screen = pygame.display.set_mode((640,480))
-            pieces=update_sprite(state.board,screen,ROWS,COLS,state)
-            draw_bg(screen)
-            pieces.update()
-            pieces.draw(screen)
-            pygame.display.flip()
-        else:
-            screen = None
-            font = None
-            pieces = None
+                    pygame.init()
+                    pygame.display.set_caption("Fanorona")
+                    font = pygame.font.Font(pygame.font.get_default_font(), 24)
+                    
+                    # create a surface on screen that has the size of 640 x 480
+                    screen = pygame.display.set_mode((640,480))
+                    pieces=update_sprite(state.board,screen,ROWS,COLS,state)
+                    draw_bg(screen)
+                    pieces.update()
+                    pieces.draw(screen)
+                    pygame.display.flip()
+                else:
+                    screen = None
+                    font = None
+                    pieces = None
 
-        running = True
-        
-        global displayed
-        
-        if GUI and first:
-            mode = get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs Human", "AI vs AI"])
-        else:
-            mode = 4
-        
-        if first:
-            match mode:
-                case 1:
-                    playerTypes = (1, 1)
-                case 2:
-                    playerTypes = (2, 1)
-                case 3:
-                    playerTypes = (1, 2)
-                case 4:
-                    playerTypes = (2, 2)
+                running = True
+                
+                global displayed
+                
+                if GUI and first:
+                    mode = 4
+                else:
+                    mode = 4
+                
+                if first:
+                    match mode:
+                        case 1:
+                            playerTypes = (1, 1)
+                        case 2:
+                            playerTypes = (2, 1)
+                        case 3:
+                            playerTypes = (1, 2)
+                        case 4:
+                            playerTypes = (2, 2)
 
-        if first:
-            algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
-            statistics = [None, show_minimax_statistics, show_mcts_statistics]
-            difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6, heuristic7]
-            prune_shorts = 1
-            for i in range(2):
-                if playerTypes[i] == 2:
-                    algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
-                    algo = get_pygame_input(screen, font, algoTypes) - 1
-                    if algo == 1:
-                        difficulty = get_pygame_input(screen, font, ["Just material", "Material + tactical", "Material + tactical + strategic", "Terminal return values", "Complex heuristic", "Endgame BFS", "Cena Lucas"]) - 1
-                        num_parameter = get_pygame_number(screen, font, "Depth? (enter to confirm)")
-                        prune_shorts = get_pygame_input(screen, font, ["Process all moves", "Ignore short moves"])
-                    elif algo == 2:
-                        difficulty = 0
-                        num_parameter = get_pygame_number(screen, font, "Seconds? (enter to confirm)")
-                    else:
-                        difficulty = 0
-                    players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts)
+                if first:
+                    algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
+                    statistics = [None, show_minimax_statistics, show_mcts_statistics]
+                    difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6, heuristic7]
+                    prune_shorts = 1
+                    for i in range(2):
+                        if playerTypes[i] == 2:
+                            algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
+                            algo = 1
+                            if algo == 1:
+                                difficulty = black_h if i == 0 else white_h
+                                num_parameter = 3
+                                prune_shorts = 1
+                            elif algo == 2:
+                                difficulty = 0
+                                num_parameter = get_pygame_number(screen, font, "Seconds? (enter to confirm)")
+                            else:
+                                difficulty = 0
+                            players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts)
 
-        while running and state.winner == 2:
-            if GUI:
-                if (len(state.boards) > 1):
-                    for board in state.boards:
+                moves = 0
+                while running and state.winner == 2:
+                    moves += 1
+                    if GUI:
+                        if (len(state.boards) > 1):
+                            for board in state.boards:
+                                draw_bg(screen)
+                                pieces = update_sprite(board, screen, ROWS, COLS)
+                                pieces.update()
+                                pieces.draw(screen)
+                                players[not state.player].show_statistics(screen, font, False)
+                                pygame.display.flip()
+                                pygame_get_enter()
                         draw_bg(screen)
-                        pieces = update_sprite(board, screen, ROWS, COLS)
+                        pieces = update_sprite(state.board, screen, ROWS, COLS,state)
                         pieces.update()
                         pieces.draw(screen)
-                        players[not state.player].show_statistics(screen, font, False)
                         pygame.display.flip()
-                        pygame_get_enter()
-                draw_bg(screen)
-                pieces = update_sprite(state.board, screen, ROWS, COLS,state)
-                pieces.update()
-                pieces.draw(screen)
-                pygame.display.flip()
-                state.boards = []
-            if(not displayed):
-                #print("Turn:", "White" if state.player else "Black")        
-                displayed = True
-            if playerTypes[state.player] == 1:
-                state = execute_player_move(screen, font, state, pieces)
-            elif playerTypes[state.player] == 2:
-                state = players[state.player].move(state)
-                if GUI:
-                    players[not state.player].show_statistics(screen, font, True)
-                displayed = False
-                if GUI:
-                    pygame_get_enter()
-        announce_winner(state.winner,screen,font)
-        first = False
+                        state.boards = []
+                    if(not displayed):
+                        #print("Turn:", "White" if state.player else "Black")        
+                        displayed = True
+                    if playerTypes[state.player] == 1:
+                        state = execute_player_move(screen, font, state, pieces)
+                    elif playerTypes[state.player] == 2:
+                        state = players[state.player].move(state)
+                        if GUI:
+                            players[not state.player].show_statistics(screen, font, True)
+                        displayed = False
+                        if GUI:
+                            pygame_get_enter()
+                announce_winner(state.winner,screen,font,moves)
 
 if __name__=="__main__":
     main()
