@@ -16,7 +16,7 @@ class Piece(pygame.sprite.Sprite):
         self.x = x
         self.y = y
         self.rect.center = (128 + 48*x, 96 + 48*y)
-
+    # Draws the piece on the board
     def update(self):
         if self.placed:
             if self.isWhite:
@@ -27,10 +27,10 @@ class Piece(pygame.sprite.Sprite):
         else:
             if self.isWhite == view:
                 pygame.draw.circle(self.image, (11,255,102), (18, 18), 18)
-
+    # Updates the position of a sprite when it is dragged according to mouse
     def drag(self, pos):
         self.rect.center = pos
-
+    # Places the piece on the board, according to the position of the mouse (approximated to the board position) and executes a move
     def place(self, pos,state, screen, font):    
         for piece in self.groups()[0]:
             if piece.rect.collidepoint(pos) and piece is not self :
@@ -43,7 +43,7 @@ class Piece(pygame.sprite.Sprite):
                 return state.move((self.y, self.x), (piece.y, piece.x), screen, font)
         self.rect.center = (128 + 48*self.x, 96 + 48*self.y)        
         return state.move((self.y, self.x), (self.y, self.x), screen, font)
-
+# Updates the srpite group with the current state of the board by adding sprite pieces
 def update_sprite(board ,screen, rows, cols,state = None):
     pieces = pygame.sprite.Group()
 
