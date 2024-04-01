@@ -58,7 +58,10 @@ def is_same_orientation(vector1, vector2):
     return declive1 == declive2
 # Game State Class
 class State:
+    """Internal game state."""
+
     def __init__(self):
+        """Initializes the state of the game according to the global ROWS and COLS variables, set at the start of the game by the user."""
         self.ROWS = ROWS
         self.COLS = COLS
         self.board = numpy.zeros((ROWS,COLS))
@@ -95,14 +98,15 @@ class State:
                 self.board[x][y] = white
         self.board[ROWS//2][COLS//2] = space
 
-    # Checks if a given position has diagonal lines
     def has_diagonal(self,player_pos):
+        """Check if a given position has access to diagonal lines on the board."""
         xi,yi=player_pos
         if((is_even(xi) and is_even(yi)) or (not is_even(xi) and not is_even(yi))):
             return True
         return False
-    # Checks if the move is valid considering the board state,lines and the player and game rules
+
     def possible_move(self,player_pos,move):
+        """Checks if the move from 'player_pos' to 'move' is valid considering the board state,lines and the player and game rules"""
         xi,yi=player_pos
         x,y = move
         xf,yf = x-xi,y-yi
@@ -123,8 +127,9 @@ class State:
                 return True
 
         return False
-    # Returns the next possible moves for a given move made considering the game rules
+
     def possible_moves(self,player_pos,move,previous_state=None):
+        """Returns the next possible moves for a given move made considering the game rules"""
         
         temp_avalable_moves = list()
         eval_vec=(move[0]-player_pos[0],move[1]-player_pos[1])
@@ -141,14 +146,15 @@ class State:
         return temp_avalable_moves
     
     def possible_moves_2(self, x, y):
+        """Returns possible moves in a way that is easily used by the AI algorithms"""
         moves = []
         for dir in random.sample(directions, k=len(directions)):
             if self.possible_move((x,y), vector_sum((x, y), dir)):
                 moves.append(dir)
         return moves
 
-    # Checks if a given position can be captured
     def can_be_captured(self,pos):
+        """Check if the piece in 'pos' is in risk of capture."""
         temp = list(generate_neighbors(pos))
         if(pos[0]%2 != pos[1]%2):
            temp = temp[:len(temp)//2]
@@ -161,8 +167,9 @@ class State:
                 if((self.board[neighbour1[0]][neighbour1[1]] == enemy and self.board[neighbour2[0]][neighbour2[1]] == space) or (self.board[neighbour2[0]][neighbour2[1]] == enemy and self.board[neighbour1[0]][neighbour1[1]] == space)):
                     return True
         return False
-    # Evaluates the captures that can be made by a given move
+    
     def evaluate_capture(self,player_pos,move):
+        """Evaluates what type of capture was made by a move from 'player_pos' to 'move'."""
         xi,yi=player_pos
         x,y = move
         captures=numpy.zeros(2)
@@ -185,8 +192,9 @@ class State:
             if( self.board[approach[0]][approach[1]] == (1 - self.player) ):
                 captures[capture_by_approach] = True
         return captures
-    # Executes the capture move in the game, altering the state
+    
     def capture_move(self,player_pos,move):
+        """Executes the capture move in the game, altering the state"""
         xi,yi=player_pos
         x,y = move
         vector = (0,0)
@@ -235,8 +243,8 @@ class State:
         
         return -1
                     
-    # Returns the initial available moves for a given state
     def update_initial_moves(self):
+        """Updates the initial available moves for a given state"""
         temp = list(self.get_available_captures())
         temp2 = list(self.get_available_non_captures())
         temp_captures= set([x.capture_positions[1] for x in temp if len(x.capture_positions)==2])
@@ -245,8 +253,9 @@ class State:
             self.available_moves = list(temp_captures) #state_copy.initial_moves_only_captures()
         else:
             self.available_moves = list(temp_non_captures)
-    # Executes a move in the game, altering the state    
+       
     def move(self,player_pos,move,screen,font):
+        """Executes a move in the game, altering the state."""
         global displayed
         displayed = False
         xi,yi=player_pos
@@ -320,11 +329,13 @@ class State:
         else:
             print("Invalid move")
             return -1
-    # Checks if a given position is in the bounds of the board
+    
     def in_bounds(self, x, y):
+        """Checks if a given position is in the bounds of the board"""
         return not (x < 0 or x >= ROWS or y < 0 or y >= COLS)
 
     def try_moves_bfs(self, x, y, in_sequence=False):
+        """Generates all possible sequences of moves using BFS. If 'in_sequence' is set to True, only the longest moves (last two levels of length) are yielded."""
         #states = []
         global GUI
         queue = deque()
@@ -385,6 +396,7 @@ class State:
         yield from longest_moves
 
     def try_moves(self, x, y, in_sequence=False):
+        """Generates all possible moves using DFS, starting from position (x,y)."""
         global GUI
         #states = []
         if not in_sequence:
@@ -431,6 +443,7 @@ class State:
                 yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
                 
     def try_non_captures(self, x, y):
+        """Generates all possible non-capturing moves from position (x,y)."""
 
         for dir in self.possible_moves_2(x, y):
             moved_pos = vector_sum((x, y), dir)
@@ -449,6 +462,7 @@ class State:
 
 
     def get_available_captures(self, only_longest=False):
+        """Generates all available capture moves for the current player. If 'only_longest' is set to True, short sequences are ignored."""
         for x in range(ROWS):
             for y in range(COLS):
                 if self.board[x][y] == self.player:
@@ -458,12 +472,14 @@ class State:
                         yield from self.try_moves(x, y)
     
     def get_available_non_captures(self):
+        """Generates all available non-capture moves for the current player."""
         for x in range(ROWS):
             for y in range(COLS):
                 if self.board[x][y] == self.player:
                     yield from self.try_non_captures(x, y)
     
     def get_all_moves(self, only_longest=False):
+        """Generates all legal moves for the current player."""
         if self.check_win() != 2:
             yield from []
         counter = 0
@@ -474,8 +490,9 @@ class State:
         if counter == 0:
             for move in self.get_available_non_captures():
                 yield deepcopy(move)
-    # Checks if the game has a winner
+
     def check_win(self):
+        """Checks if the game has a winner"""
         if self.white_pieces == 0:
             self.winner = black
         elif self.black_pieces == 0:
@@ -486,23 +503,24 @@ class State:
             self.winner = 2
         return self.winner
 
-        
-# Function that waits for an enter key press to continue the paused game
 def pygame_get_enter():
+    """Function that waits for an enter key press to continue the paused game"""
     while True:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     return 0
-# Draws individual board motifs
+
 def draw_motif(screen, x, y, size):
+    """Draws individual board motifs"""
     pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(x, y, size, size), width=1)
     pygame.draw.line(screen, (0, 0, 0), (x+size/2, y), (x+size/2, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size/2), (x+size, y+size/2))
     pygame.draw.line(screen, (0, 0, 0), (x, y), (x+size, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size), (x+size, y))
-# Prints the winner on GUI or console
+
 def announce_winner(winner,screen,font):
+    """Prints the winner on GUI or console"""
     global GUI
 
     string_winner=""
@@ -522,14 +540,16 @@ def announce_winner(winner,screen,font):
         return
     
     print(string_winner)
-# Draws the board on the GUI
+
 def draw_bg(screen):
+    """Draws the board on the GUI"""
     screen.fill((255, 255, 255))
     for x in range(COLS//2):
         for y in range(ROWS//2):
             draw_motif(screen, 128 + 96*x, 96*(y+1), 96)
-# Draws options in the lower left corner of the GUI and gets input according to the options
+
 def get_pygame_input(screen, font, opts):
+    """Draws options in the lower left corner of the GUI and gets input according to the options"""
     global GUI
     opts = list(map(lambda num, opt: f"{num}: {opt}", range(1, len(opts)+1), opts))
 
@@ -558,8 +578,9 @@ def get_pygame_input(screen, font, opts):
                     screen.fill((255,255,255, 255), rect=rect)
                     pygame.display.flip()
                     return int(key)
-# Displays text on the lower left corner of the GUI
+
 def display_text(screen, font, text):
+    """Displays text on the lower left corner of the GUI"""
     display_text = font.render(text, True, (0,0,0))
     textRect = display_text.get_rect()
     textRect.bottomleft = (0, 480)
@@ -568,14 +589,16 @@ def display_text(screen, font, text):
     screen.blit(display_text, textRect)
     pygame.display.flip()
     pygame.event.clear()
-# Displays the player turn on the lower left corner of the GUI
+
 def display_player_turn(screen, font, player):
+    """Displays the player turn on the lower left corner of the GUI"""
     if player == 1:
         display_text(screen, font, "White's turn")
     else:
         display_text(screen, font, "Black's turn")
-# Displays a text and gets an input number given by user
+
 def get_pygame_number(screen, font, text):
+    """Displays a text and gets an input number given by user"""
     global GUI
 
     if not GUI:
@@ -602,8 +625,9 @@ def get_pygame_number(screen, font, text):
                     display_text(screen, font, text + " " + str(num))
                 elif event.key == pygame.K_RETURN and num != 0:
                     return num
-# Gets user input in the GUI with mouse and executes the move according to the mouse position, advancing to the next game state
+
 def execute_player_move(screen, font, state, pieces):
+    """Gets user input in the GUI with mouse and executes the move according to the mouse position, advancing to the next game state"""
     dragging = None
     running = True
 
@@ -635,8 +659,8 @@ def execute_player_move(screen, font, state, pieces):
                 dragging.drag(pygame.mouse.get_pos())
             display_player_turn(screen, font, state.player)
 
-# Executes a random move in the list of possible moves
 def execute_random_move(state, evaluate, num, _, __):
+    """Executes a random move in the list of possible moves"""
     moves = state.get_all_moves()
     move = random.choice(list(moves))
     move.player = 1 - move.player
