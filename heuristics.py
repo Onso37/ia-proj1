@@ -180,20 +180,4 @@ def heuristic7(player, state):
     elif winner == ((1-player)):       # or winner == -1:
         return -999999999
     else:
-        score = 0
-        if player == 1:
-            enemy_pieces = state.black_pieces
-            my_pieces = state.white_pieces
-        else:
-            enemy_pieces = state.white_pieces
-            my_pieces = state.black_pieces
-
-        if enemy_pieces < (ROWS*COLS//2)*0.25 and enemy_pieces <= my_pieces:
-            sources = []
-            for x in range(ROWS):
-                for y in range(COLS):
-                    if state.board[x][y] == ((1-player)):
-                        sources.append((x, y))
-            score = bfs(state.board.copy(), sources, player)
-            score -= my_pieces*min(ROWS, COLS)
-        return 6*material(player, state) + 2*tactical(player, state) - strategic(player, state) #- score
+        return 6*material(player, state) + 2*tactical(player, state) - strategic(player, state) 
