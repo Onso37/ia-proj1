@@ -107,8 +107,8 @@ def show_mcts_statistics(screen, font, first):
     textRect.topleft = (0, 0)
     screen.blit(display_text, textRect)
     pygame.display.flip()
-
-def execute_mcts_move(state, _, seconds):
+   
+def execute_mcts_move(state, _, seconds,__,___):
     """Executes a MCTS move from a given state. After 'seconds' seconds, the algorithm will stop creating new simulations."""
     global simulations, wins
     simulations = 0

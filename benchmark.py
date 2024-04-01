@@ -89,13 +89,12 @@ class State:
             for x in range((ROWS//2)+1, ROWS):
                 self.board[x][y] = white
         self.board[ROWS//2][COLS//2] = space
-    def has_diagonal(self,player_pos,move):
+    def has_diagonal(self,player_pos):
         xi,yi=player_pos
-        x,y = move
-        if(is_diagonal(xi,yi,x,y)):
-            if((is_even(xi) and is_even(yi)) or (not is_even(xi) and not is_even(yi))):
-                return True
+        if((is_even(xi) and is_even(yi)) or (not is_even(xi) and not is_even(yi))):
+            return True
         return False
+    # Checks if the move is possible considering the board, 
     def possible_move(self,player_pos,move):
         xi,yi=player_pos
         x,y = move
@@ -109,7 +108,7 @@ class State:
         if(self.player != self.board[xi][yi] ): 
             return False
         if(is_diagonal(xi,yi,x,y)):
-            if((is_even(xi) and is_even(yi)) or (not is_even(xi) and not is_even(yi))):
+            if(self.has_diagonal(player_pos)):
                 if(self.board[x][y] == space):
                     return True
         else:
