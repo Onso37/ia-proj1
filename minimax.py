@@ -5,7 +5,7 @@ import pygame
 import numpy
 from Piece import update_sprite
 import collections
-from memory_profiling import *
+from memory_profiler import profile
 
 cuts = 0
 explored = 0
@@ -69,7 +69,6 @@ def show_minimax_statistics(screen, font):
     screen.blit(display_text, textRect)
     pygame.display.flip()
 
-@profile
 def execute_minimax_move(state, evaluate_func):
     global cuts, totalT, explored
     cuts = 0

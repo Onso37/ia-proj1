@@ -2,7 +2,7 @@ import numpy as np
 import random
 import time
 import pygame
-from memory_profiling import *
+from memory_profiler import profile
 
 simulations = 0
 explored = 0
@@ -101,6 +101,5 @@ def show_mcts_statistics(screen, font):
     screen.blit(display_text, textRect)
     pygame.display.flip()
 
-@profile
 def execute_mcts_move(state, _):
     return monte_carlo_tree_search(Node(state), 5).state
