@@ -636,7 +636,7 @@ def execute_player_move(screen, font, state, pieces):
             display_player_turn(screen, font, state.player)
 
 # Executes a random move in the list of possible moves
-def execute_random_move(state, evaluate, num):
+def execute_random_move(state, evaluate, num, _, __):
     moves = state.get_all_moves()
     move = random.choice(list(moves))
     move.player = 1 - move.player
@@ -731,6 +731,8 @@ def main():
                         ab_cuts = 0
                     else:
                         difficulty = 0
+                        ab_cuts = 0
+                        num_parameter = 0
                     players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts,ab_cuts)
 
         while running and state.winner == 2:
