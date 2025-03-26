@@ -1,11 +1,13 @@
 # import the pygame module, so you can use it
 import pygame
 import numpy
+import time
 from Piece import *
 from mcts import execute_mcts_move, show_mcts_statistics
 from AIPlayer import *
 from heuristics import *
 import random
+import functools 
 from minimax import execute_minimax_move, show_minimax_statistics
 from copy import deepcopy
 from collections import deque
@@ -35,15 +37,12 @@ GUI = False
 
 def is_even(x):
     return x%2==0
-# Checks if the positions are diagonal
 def is_diagonal(x1,y1,x2,y2):
     return abs(x1-x2) == abs(y1-y2)
-# Sum of two vectors or positions
 def vector_sum(v1,v2):
     return (v1[0]+v2[0],v1[1]+v2[1])
 def vector_sub(v1,v2):
     return (v1[0]-v2[0],v1[1]-v2[1])
-# Checks if two vectors have the same orientation
 def is_same_orientation(vector1, vector2):
     if(vector1[0]==0 and vector1[1]!=0):
         declive1 = None
@@ -54,12 +53,9 @@ def is_same_orientation(vector1, vector2):
     else:
         declive2 = vector2[1] / vector2[0]
     return declive1 == declive2
-# Game State Class
-class State:
-    """Internal game state."""
 
+class State:
     def __init__(self):
-        """Initializes the state of the game according to the global ROWS and COLS variables, set at the start of the game by the user."""
         self.ROWS = ROWS
         self.COLS = COLS
         self.board = numpy.zeros((ROWS,COLS))
@@ -95,16 +91,13 @@ class State:
             for x in range((ROWS//2)+1, ROWS):
                 self.board[x][y] = white
         self.board[ROWS//2][COLS//2] = space
-
     def has_diagonal(self,player_pos):
-        """Check if a given position has access to diagonal lines on the board."""
         xi,yi=player_pos
         if((is_even(xi) and is_even(yi)) or (not is_even(xi) and not is_even(yi))):
             return True
         return False
-
+    # Checks if the move is possible considering the board, 
     def possible_move(self,player_pos,move):
-        """Checks if the move from 'player_pos' to 'move' is valid considering the board state,lines and the player and game rules"""
         xi,yi=player_pos
         x,y = move
         xf,yf = x-xi,y-yi
@@ -125,9 +118,8 @@ class State:
                 return True
 
         return False
-
+    
     def possible_moves(self,player_pos,move,previous_state=None):
-        """Returns the next possible moves for a given move made considering the game rules"""
         
         temp_avalable_moves = list()
         eval_vec=(move[0]-player_pos[0],move[1]-player_pos[1])
@@ -144,15 +136,14 @@ class State:
         return temp_avalable_moves
     
     def possible_moves_2(self, x, y):
-        """Returns possible moves in a way that is easily used by the AI algorithms"""
         moves = []
         for dir in random.sample(directions, k=len(directions)):
             if self.possible_move((x,y), vector_sum((x, y), dir)):
                 moves.append(dir)
         return moves
 
+    
     def can_be_captured(self,pos):
-        """Check if the piece in 'pos' is in risk of capture."""
         temp = list(generate_neighbors(pos))
         if(pos[0]%2 != pos[1]%2):
            temp = temp[:len(temp)//2]
@@ -161,13 +152,12 @@ class State:
                 neighbour2=neighbour[1]
                 if(not self.in_bounds(neighbour1[0],neighbour1[1]) or not self.in_bounds(neighbour2[0],neighbour2[1])):
                     continue
-                enemy= 1 -  self.player
+                enemy= 1 - self.player
                 if((self.board[neighbour1[0]][neighbour1[1]] == enemy and self.board[neighbour2[0]][neighbour2[1]] == space) or (self.board[neighbour2[0]][neighbour2[1]] == enemy and self.board[neighbour1[0]][neighbour1[1]] == space)):
                     return True
         return False
-    
+
     def evaluate_capture(self,player_pos,move):
-        """Evaluates what type of capture was made by a move from 'player_pos' to 'move'."""
         xi,yi=player_pos
         x,y = move
         captures=numpy.zeros(2)
@@ -190,9 +180,8 @@ class State:
             if( self.board[approach[0]][approach[1]] == (1 - self.player) ):
                 captures[capture_by_approach] = True
         return captures
-    
+        
     def capture_move(self,player_pos,move):
-        """Executes the capture move in the game, altering the state"""
         xi,yi=player_pos
         x,y = move
         vector = (0,0)
@@ -241,8 +230,8 @@ class State:
         
         return -1
                     
+
     def update_initial_moves(self):
-        """Updates the initial available moves for a given state"""
         temp = list(self.get_available_captures())
         temp2 = list(self.get_available_non_captures())
         temp_captures= set([x.capture_positions[1] for x in temp if len(x.capture_positions)==2])
@@ -251,9 +240,8 @@ class State:
             self.available_moves = list(temp_captures) #state_copy.initial_moves_only_captures()
         else:
             self.available_moves = list(temp_non_captures)
-       
+        
     def move(self,player_pos,move,screen,font):
-        """Executes a move in the game, altering the state."""
         global displayed
         displayed = False
         xi,yi=player_pos
@@ -329,11 +317,9 @@ class State:
             return -1
     
     def in_bounds(self, x, y):
-        """Checks if a given position is in the bounds of the board"""
         return not (x < 0 or x >= ROWS or y < 0 or y >= COLS)
 
     def try_moves_bfs(self, x, y, in_sequence=False):
-        """Generates all possible sequences of moves using BFS. If 'in_sequence' is set to True, only the longest moves (last two levels of length) are yielded."""
         #states = []
         global GUI
         queue = deque()
@@ -394,7 +380,6 @@ class State:
         yield from longest_moves
 
     def try_moves(self, x, y, in_sequence=False):
-        """Generates all possible moves using DFS, starting from position (x,y)."""
         global GUI
         #states = []
         if not in_sequence:
@@ -441,7 +426,6 @@ class State:
                 yield from state_copy.try_moves(moved_pos[0], moved_pos[1], True)
                 
     def try_non_captures(self, x, y):
-        """Generates all possible non-capturing moves from position (x,y)."""
 
         for dir in self.possible_moves_2(x, y):
             moved_pos = vector_sum((x, y), dir)
@@ -460,7 +444,6 @@ class State:
 
 
     def get_available_captures(self, only_longest=False):
-        """Generates all available capture moves for the current player. If 'only_longest' is set to True, short sequences are ignored."""
         for x in range(ROWS):
             for y in range(COLS):
                 if self.board[x][y] == self.player:
@@ -470,14 +453,12 @@ class State:
                         yield from self.try_moves(x, y)
     
     def get_available_non_captures(self):
-        """Generates all available non-capture moves for the current player."""
         for x in range(ROWS):
             for y in range(COLS):
                 if self.board[x][y] == self.player:
                     yield from self.try_non_captures(x, y)
     
     def get_all_moves(self, only_longest=False):
-        """Generates all legal moves for the current player."""
         if self.check_win() != 2:
             yield from []
         counter = 0
@@ -490,7 +471,6 @@ class State:
                 yield deepcopy(move)
 
     def check_win(self):
-        """Checks if the game has a winner"""
         if self.white_pieces == 0:
             self.winner = black
         elif self.black_pieces == 0:
@@ -501,24 +481,23 @@ class State:
             self.winner = 2
         return self.winner
 
+        
+
 def pygame_get_enter():
-    """Function that waits for an enter key press to continue the paused game"""
     while True:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     return 0
-
+ 
 def draw_motif(screen, x, y, size):
-    """Draws individual board motifs"""
     pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(x, y, size, size), width=1)
     pygame.draw.line(screen, (0, 0, 0), (x+size/2, y), (x+size/2, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size/2), (x+size, y+size/2))
     pygame.draw.line(screen, (0, 0, 0), (x, y), (x+size, y+size))
     pygame.draw.line(screen, (0, 0, 0), (x, y+size), (x+size, y))
 
-def announce_winner(winner,screen,font):
-    """Prints the winner on GUI or console"""
+def announce_winner(winner,screen,font,moves):
     global GUI
 
     string_winner=""
@@ -528,6 +507,9 @@ def announce_winner(winner,screen,font):
         string_winner="Black wins"
     else:
         string_winner="Draw"
+    
+    string_winner += f" in {moves} moves"
+
     if GUI:
         display_text = font.render(string_winner, True, (0,0,0))
         textRect = display_text.get_rect()
@@ -538,16 +520,14 @@ def announce_winner(winner,screen,font):
         return
     
     print(string_winner)
-
+    
 def draw_bg(screen):
-    """Draws the board on the GUI"""
     screen.fill((255, 255, 255))
     for x in range(COLS//2):
         for y in range(ROWS//2):
             draw_motif(screen, 128 + 96*x, 96*(y+1), 96)
 
 def get_pygame_input(screen, font, opts):
-    """Draws options in the lower left corner of the GUI and gets input according to the options"""
     global GUI
     opts = list(map(lambda num, opt: f"{num}: {opt}", range(1, len(opts)+1), opts))
 
@@ -578,7 +558,6 @@ def get_pygame_input(screen, font, opts):
                     return int(key)
 
 def display_text(screen, font, text):
-    """Displays text on the lower left corner of the GUI"""
     display_text = font.render(text, True, (0,0,0))
     textRect = display_text.get_rect()
     textRect.bottomleft = (0, 480)
@@ -588,15 +567,7 @@ def display_text(screen, font, text):
     pygame.display.flip()
     pygame.event.clear()
 
-def display_player_turn(screen, font, player):
-    """Displays the player turn on the lower left corner of the GUI"""
-    if player == 1:
-        display_text(screen, font, "White's turn")
-    else:
-        display_text(screen, font, "Black's turn")
-
 def get_pygame_number(screen, font, text):
-    """Displays a text and gets an input number given by user"""
     global GUI
 
     if not GUI:
@@ -625,16 +596,14 @@ def get_pygame_number(screen, font, text):
                     return num
 
 def execute_player_move(screen, font, state, pieces):
-    """Gets user input in the GUI with mouse and executes the move according to the mouse position, advancing to the next game state"""
     dragging = None
     running = True
-
     while running:
-
         draw_bg(screen)
         #pieces = update_sprite(state,screen)
         pieces.update()
         pieces.draw(screen)
+        pygame.display.flip()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -655,16 +624,14 @@ def execute_player_move(screen, font, state, pieces):
                 return state
             if event.type == pygame.MOUSEMOTION and dragging:
                 dragging.drag(pygame.mouse.get_pos())
-            display_player_turn(screen, font, state.player)
 
-def execute_random_move(state, evaluate, num, _, __):
-    """Executes a random move in the list of possible moves"""
+def execute_random_move(state, evaluate, num):
     moves = state.get_all_moves()
     move = random.choice(list(moves))
-    move.player = 1 - move.player
+    move.player = 1-  move.player
     return move
 
-
+# define a main function
 def main():
     global GUI, ROWS, COLS
 
@@ -679,125 +646,112 @@ def main():
     elif variant == 3:
         ROWS = 5
         COLS = 9
-    useGUI = get_pygame_input(None, None, ["With GUI", "Without GUI"])
-    if (useGUI == 1):
-        GUI = True
-    
-    if not GUI:
-        games = int(input("How many games?"))
-    else:
-        games = 1
+    depth_b = get_pygame_number(None, None, "Depth for black?")
+    depth_w = get_pygame_number(None, None, "Depth for white?")
 
+    GUI = False
+    
+    games = 1
+    
     first = True
     players = [None, None]
     playerTypes = None
-    for _ in range(games):
-        state = State()
-        if GUI:
-            #test = state.get_all_moves()
+    for white_h in range(6):
+        for black_h in range(6):
+            print(f"White is heuristic{white_h+1}, black is heuristic{black_h+1}")
+            for _ in range(games):
+                state = State()
+                if GUI:
+                    #test = state.get_all_moves()
 
-            pygame.init()
-            pygame.display.set_caption("Fanorona")
-            font = pygame.font.Font(pygame.font.get_default_font(), 24)
-            
-            # create a surface on screen that has the size of 640 x 480
-            screen = pygame.display.set_mode((640,480))
-            pieces=update_sprite(state.board,screen,ROWS,COLS,state)
-            draw_bg(screen)
-            pieces.update()
-            pieces.draw(screen)
-            pygame.display.flip()
-        else:
-            screen = None
-            font = None
-            pieces = None
+                    pygame.init()
+                    pygame.display.set_caption("Fanorona")
+                    font = pygame.font.Font(pygame.font.get_default_font(), 24)
+                    
+                    # create a surface on screen that has the size of 640 x 480
+                    screen = pygame.display.set_mode((640,480))
+                    pieces=update_sprite(state.board,screen,ROWS,COLS,state)
+                    draw_bg(screen)
+                    pieces.update()
+                    pieces.draw(screen)
+                    pygame.display.flip()
+                else:
+                    screen = None
+                    font = None
+                    pieces = None
 
-        running = True
-        
-        global displayed
-        
-        if GUI and first:
-            mode = get_pygame_input(screen, font, ["Human vs Human", "Human vs AI", "AI vs Human", "AI vs AI"])
-        else:
-            mode = 4
-        
-        if first:
-            match mode:
-                case 1:
-                    playerTypes = (1, 1)
-                case 2:
-                    playerTypes = (2, 1)
-                case 3:
-                    playerTypes = (1, 2)
-                case 4:
-                    playerTypes = (2, 2)
+                running = True
+                
+                global displayed
+                
+                if GUI and first:
+                    mode = 4
+                else:
+                    mode = 4
+                
+                if first:
+                    match mode:
+                        case 1:
+                            playerTypes = (1, 1)
+                        case 2:
+                            playerTypes = (2, 1)
+                        case 3:
+                            playerTypes = (1, 2)
+                        case 4:
+                            playerTypes = (2, 2)
 
-        if first:
-            algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
-            statistics = [None, show_minimax_statistics, show_mcts_statistics]
-            difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6]
-            prune_shorts = 1
-            ab_cuts = 0
-            for i in range(2):
-                if playerTypes[i] == 2:
-                    algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
-                    algo = get_pygame_input(screen, font, algoTypes) - 1
-                    if algo == 1:
-                        difficulty = get_pygame_input(screen, font, ["Just material", "Material + tactical", "Terminal return values", "Complex heuristic", "Endgame BFS", "Weighted features"]) - 1
-                        num_parameter = get_pygame_number(screen, font, "Depth? (enter to confirm)")
-                        ab_cuts = get_pygame_input(screen, font, ["Don't use alpha-beta pruning", "Use alpha-beta pruning"]) - 1 
-                        prune_shorts = get_pygame_input(screen, font, ["Process all moves", "Ignore short moves"])
-                    elif algo == 2:
-                        difficulty = 0
-                        num_parameter = get_pygame_number(screen, font, "Seconds? (enter to confirm)")
-                        ab_cuts = 0
-                    else:
-                        difficulty = 0
-                        ab_cuts = 0
-                        num_parameter = 0
-                    players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts,ab_cuts)
+                if first:
+                    algos = [execute_random_move, execute_minimax_move, execute_mcts_move]
+                    statistics = [None, show_minimax_statistics, show_mcts_statistics]
+                    difficulties = [heuristic1, heuristic2, heuristic3, heuristic4, heuristic5, heuristic6]
+                    prune_shorts = 1
+                    for i in range(2):
+                        if playerTypes[i] == 2:
+                            algoTypes = ["Random move", "Minimax", "Monte Carlo Tree Search"]
+                            algo = 1
+                            if algo == 1:
+                                difficulty = black_h if i == 0 else white_h
+                                num_parameter = depth_b if i == 0 else depth_w
+                                prune_shorts = 1
+                            elif algo == 2:
+                                difficulty = 0
+                                num_parameter = get_pygame_number(screen, font, "Seconds? (enter to confirm)")
+                            else:
+                                difficulty = 0
+                            players[i] = AIPlayer(algos[algo], difficulties[difficulty], statistics[algo], algoTypes[algo], num_parameter, prune_shorts, True)
 
-        while running and state.winner == 2:
-            
-
-            if GUI:
-                if (len(state.boards) > 1):
-                    for board in state.boards:
+                moves = 0
+                while running and state.winner == 2:
+                    moves += 1
+                    if GUI:
+                        if (len(state.boards) > 1):
+                            for board in state.boards:
+                                draw_bg(screen)
+                                pieces = update_sprite(board, screen, ROWS, COLS)
+                                pieces.update()
+                                pieces.draw(screen)
+                                players[1 - state.player].show_statistics(screen, font, False)
+                                pygame.display.flip()
+                                pygame_get_enter()
                         draw_bg(screen)
-                        pieces = update_sprite(board, screen, ROWS, COLS)
+                        pieces = update_sprite(state.board, screen, ROWS, COLS,state)
                         pieces.update()
                         pieces.draw(screen)
-                        players[1 - state.player].show_statistics(screen, font, False)
                         pygame.display.flip()
-                        pygame_get_enter()
-                draw_bg(screen)
-                if playerTypes[state.player] == 1:
-                    pieces = update_sprite(state.board, screen, ROWS, COLS,state)
-                else:
-                    pieces = update_sprite(state.board, screen, ROWS, COLS)
-                pieces.update()
-                pieces.draw(screen)
-                pygame.display.flip()
-                display_player_turn(screen, font, state.player)
-                state.boards = []
-            if(not displayed):
-                #print("Turn:", "White" if state.player else "Black")        
-                displayed = True
-            if playerTypes[state.player] == 1:
-                state = execute_player_move(screen, font, state, pieces)
-
-            elif playerTypes[state.player] == 2:
-                state = players[state.player].move(state)
-                if GUI:
-                    players[1 - state.player].show_statistics(screen, font, True)
-                displayed = False
-                if GUI:
-                    pygame_get_enter()
-
-
-                    
-        announce_winner(state.winner,screen,font)
-        first = False
+                        state.boards = []
+                    if(not displayed):
+                        #print("Turn:", "White" if state.player else "Black")        
+                        displayed = True
+                    if playerTypes[state.player] == 1:
+                        state = execute_player_move(screen, font, state, pieces)
+                    elif playerTypes[state.player] == 2:
+                        state = players[state.player].move(state)
+                        if GUI:
+                            players[1 - state.player].show_statistics(screen, font, True)
+                        displayed = False
+                        if GUI:
+                            pygame_get_enter()
+                announce_winner(state.winner,screen,font,moves)
 
 if __name__=="__main__":
     main()
